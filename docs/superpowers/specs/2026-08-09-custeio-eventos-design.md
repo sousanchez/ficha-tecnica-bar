@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS evento_receitas (
 
 `CREATE TABLE IF NOT EXISTS` já roda em todo load do banco (novo ou existente, ver `db.js:init`), então essas tabelas aparecem automaticamente em bancos já salvos sem precisar de passo extra em `migrateSchema()` — que só existe hoje pra `ALTER TABLE` (adicionar coluna em tabela já existente).
 
+**Atenção (achado do code-review):** `ON DELETE CASCADE` no schema não tem efeito nenhum aqui — o app nunca roda `PRAGMA foreign_keys = ON` em `db.js`, e as tabelas existentes (`receita_itens.receita_id`, `producao_itens.producao_id`) já têm a mesma cláusula no schema mas `deleteReceita`/`deleteInsumo` fazem `DELETE FROM` manual mesmo assim, porque sabem que o cascade não é aplicado. `deleteEvento` precisa seguir o mesmo padrão manual (ver seção Funções novas), não confiar no cascade.
+
 `evento_receitas` não guarda quantidade: peso é igual entre os drinks selecionados (decisão do brainstorming). Adicionar peso por histórico depois é só somar uma coluna nessa tabela ou usar `vendas_periodo` na hora do cálculo — não exige mudança de schema hoje.
 
 ## Cálculo
@@ -77,16 +79,19 @@ Mesmo padrão das funções de receita já existentes:
 - `getEvento(id)` — evento + lista de receitas selecionadas (nome, custo)
 - `addEvento()` — insere linha em branco, abre editor
 - `updateEventoField(id, field, value)` — via `setField('eventos', allowed, id, field, value)` (helper já criado nesta sessão pro fix #3 do code review)
-- `deleteEvento(id)` — `ON DELETE CASCADE` em `evento_receitas.evento_id` limpa os vínculos sozinho
-- `addEventoReceita(eventoId, receitaId)` / `removeEventoReceita(id)` — toggle de drink no pacote
-- `calcCustoEventoPessoa(custosDasReceitas, dosesPorPessoa)` — função pura (ver acima)
+- `deleteEvento(id)` — `run('DELETE FROM evento_receitas WHERE evento_id = ?', [id])` manual antes de deletar o evento, mesmo padrão de `deleteInsumo`/`deleteReceita` (cascade do schema não é aplicado, ver nota na seção Modelo de dados)
+- `addEventoReceita(eventoId, receitaId)` — checa se o vínculo já existe antes de inserir (`SELECT ... WHERE evento_id = ? AND receita_id = ?`) e não faz nada se já existir, pra evitar duplicata que pesaria o drink 2x na média (sem constraint UNIQUE no schema pra isso)
+- `removeEventoReceita(id)` — remove o vínculo
+- `calcCustoEventoPessoa(custosDasReceitas, dosesPorPessoa)` — função pura (ver acima), **precisa entrar no `module.exports` no fim de `model.js`** (mesmo bloco que já exporta `calcIndicadores`/`computeMenuEngineering`) pra os testes unitários conseguirem importar
 - `calcCustoEvento(eventoId)` — wrapper que busca do banco (ver acima)
+- **Mudança em função existente:** `deleteReceita(id)` ganha o mesmo guard que `deleteInsumo` já tem — bloquear com aviso se a receita estiver em algum `evento_receitas` (checagem antes do `DELETE FROM receitas`). Sem isso, apagar uma ficha usada num evento derruba o custo/pessoa do pacote sem avisar ninguém.
 
 ## UI
 
 - Nova aba "Eventos" em `index.html` (tab-btn + tab-panel), ao lado de Insumos/Fichas Técnicas/Dashboard
-- `renderEventos()` em `render.js` — cards (nome, convidados, custo/pessoa, badge CMV), mesmo padrão de `renderReceitas()`
-- `renderEventoEditor()` — modal com: nome, data, convidados, horas, doses/pessoa, preço do pacote/pessoa, checklist de fichas técnicas ativas (marcar/desmarcar pra incluir no pacote), custo/pessoa e CMV/margem calculados. Mecânica idêntica ao modal de produção interna que já existe.
+- `renderEventos()` em `render.js` — cards (nome, convidados, custo/pessoa, badge CMV), mesmo padrão de `renderReceitas()`. **Precisa entrar em `refreshAll()`** junto com `renderInsumos()`/`renderReceitas()`/`renderDashboard()`, senão editar um insumo ou apagar uma receita deixa o custo/pessoa e o CMV da aba Eventos desatualizados até o usuário trocar de aba manualmente.
+- `renderEventoEditor()` — modal com: nome, data, convidados, horas, doses/pessoa, preço do pacote/pessoa, checklist de **todas as fichas técnicas cadastradas** (marcar/desmarcar pra incluir no pacote), custo/pessoa e CMV/margem calculados. Mecânica idêntica ao modal de produção interna que já existe.
+  - Nota: a ideia original era filtrar o checklist só pelas fichas "ativas" (`receitas.ativo`), mas hoje não existe nenhum jeito no app de setar essa coluna pra 0 — `updateReceitaField` nem aceita `ativo` no whitelist, e `addReceita` sempre insere com `ativo=1`. Filtrar por isso seria sempre-verdadeiro, então o checklist lista tudo. Expor um jeito de desativar ficha técnica é feature separada, fora de escopo aqui.
 - Wiring em `main.js` — mesmo padrão de `bindFormFields`/handlers já usado nos outros modais.
 
 ## Casos de borda
