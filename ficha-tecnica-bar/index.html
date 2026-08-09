@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha Técnica de Bar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>🍸 Ficha Técnica de Bar</h1>
+    <div class="header-actions">
+      <button id="btn-export-db" class="btn secondary">Exportar banco (.db)</button>
+      <button id="btn-import-db" class="btn secondary">Importar banco (.db)</button>
+      <input type="file" id="input-import-db" accept=".db" hidden>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="insumos">Insumos</button>
+    <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
+    <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+  </nav>
+
+  <main>
+    <section id="tab-insumos" class="tab-panel active">
+      <div class="toolbar">
+        <input id="filtro-nome" type="text" placeholder="Buscar insumo...">
+        <span id="insumos-count" class="muted"></span>
+        <button id="btn-detect-volumes" class="btn secondary" title="Detecta ml/g no nome dos insumos que ainda estao como 'unidade'">🔍 Detectar volumes</button>
+        <button id="btn-add-producao" class="btn secondary">+ Nova produção interna</button>
+        <button id="btn-add-insumo" class="btn">+ Novo insumo</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Fornecedor</th>
+              <th>Preço de compra</th>
+              <th>Unidade</th>
+              <th>Tamanho (rendimento)</th>
+              <th>Fator correção</th>
+              <th>Custo unitário</th>
+              <th>Estoque mín.</th>
+              <th>Estoque atual</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="insumos-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-receitas" class="tab-panel">
+      <div class="toolbar">
+        <span class="muted">Fichas técnicas de cocktails</span>
+        <button id="btn-add-receita" class="btn">+ Nova ficha técnica</button>
+      </div>
+      <div id="receitas-list" class="receitas-grid"></div>
+    </section>
+
+    <section id="tab-dashboard" class="tab-panel">
+      <div class="toolbar">
+        <span>Comparativo de CMV e margem por receita</span>
+        <span id="dashboard-total" class="muted"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Receita</th>
+              <th>Custo</th>
+              <th>Preço de venda</th>
+              <th>CMV</th>
+              <th>Markup</th>
+              <th>Margem</th>
+              <th>Vendas período</th>
+            </tr>
+          </thead>
+          <tbody id="dashboard-tbody"></tbody>
+        </table>
+      </div>
+
+      <h3>Engenharia de cardápio</h3>
+      <div id="menu-engineering"></div>
+    </section>
+  </main>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <input id="re-nome" type="text" class="modal-title-input" placeholder="Nome do cocktail">
+        <button id="modal-close" class="icon-btn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Categoria <input id="re-categoria" type="text" placeholder="Ex: Clássico, Autoral"></label>
+          <label>Copo <input id="re-copo" type="text" placeholder="Ex: Rocks, Taça"></label>
+          <label>Guarnição <input id="re-guarnicao" type="text" placeholder="Ex: Rodela de limão"></label>
+          <label>Preço de venda <input id="re-preco-venda" type="number" step="0.01"></label>
+          <label>Utensílios <input id="re-utensilios" type="text" placeholder="Ex: Coqueteleira, jigger, bailarina"></label>
+          <label>Tempo de preparo <input id="re-tempo-preparo" type="text" placeholder="Ex: 3 min"></label>
+          <label>Rendimento <input id="re-rendimento" type="text" placeholder="Ex: 1 dose de 200ml"></label>
+          <label>Vendas no período (giro) <input id="re-vendas-periodo" type="number" step="1" placeholder="Ex: 40"></label>
+        </div>
+        <label class="full">Modo de preparo
+          <textarea id="re-modo-preparo" rows="3" placeholder="Descreva o preparo..."></textarea>
+        </label>
+
+        <h3>Insumos da receita</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Insumo</th><th>Quantidade</th><th>Unidade</th><th>Custo</th><th></th></tr>
+            </thead>
+            <tbody id="re-itens-tbody"></tbody>
+          </table>
+        </div>
+        <div class="add-item-row">
+          <select id="re-add-insumo"></select>
+          <input id="re-add-qtd" type="number" step="0.01" placeholder="Quantidade">
+          <span id="re-add-unidade" class="unidade-aviso"></span>
+          <button id="btn-add-item" class="btn">Adicionar</button>
+        </div>
+
+        <div class="indicadores">
+          <div class="indicador"><span>Custo total</span><strong id="re-custo">R$ 0,00</strong></div>
+          <div class="indicador"><span>CMV</span><strong id="re-cmv" class="badge">-</strong></div>
+          <div class="indicador"><span>Markup</span><strong id="re-markup">-</strong></div>
+          <div class="indicador"><span>Margem</span><strong id="re-margem">R$ 0,00</strong></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-print-receita" class="btn secondary">Imprimir ficha técnica</button>
+        <button id="btn-delete-receita" class="btn danger">Excluir ficha técnica</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-producao-overlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <input id="pr-nome" type="text" class="modal-title-input" placeholder="Nome da produção interna">
+        <button id="modal-producao-close" class="icon-btn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Categoria <input id="pr-categoria" type="text" placeholder="Ex: Xarope, Espuma, Batch"></label>
+          <label>Unidade de rendimento
+            <select id="pr-unidade">
+              <option value="ml">ml</option>
+              <option value="L">L</option>
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="unidade">unidade</option>
+            </select>
+          </label>
+          <label>Rendimento total <input id="pr-rendimento" type="number" step="0.01" placeholder="Ex: 1000"></label>
+          <label>Fator de correção <input id="pr-fator" type="number" step="0.01" placeholder="1 = sem perda"></label>
+        </div>
+
+        <h3>Ingredientes da produção</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Insumo</th><th>Quantidade</th><th>Unidade</th><th>Custo</th><th></th></tr>
+            </thead>
+            <tbody id="pr-itens-tbody"></tbody>
+          </table>
+        </div>
+        <div class="add-item-row">
+          <select id="pr-add-insumo"></select>
+          <input id="pr-add-qtd" type="number" step="0.01" placeholder="Quantidade">
+          <span id="pr-add-unidade" class="unidade-aviso"></span>
+          <button id="btn-add-pritem" class="btn">Adicionar</button>
+        </div>
+
+        <div class="indicadores">
+          <div class="indicador"><span>Custo total do lote</span><strong id="pr-custo-total">R$ 0,00</strong></div>
+          <div class="indicador"><span>Custo unitário</span><strong id="pr-custo-unitario">R$ 0,00</strong></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-delete-producao" class="btn danger">Excluir produção interna</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lib/sql-wasm.js"></script>
+  <script src="seed-data.js"></script>
+  <script src="db.js"></script>
+  <script src="model.js"></script>
+  <script src="render.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

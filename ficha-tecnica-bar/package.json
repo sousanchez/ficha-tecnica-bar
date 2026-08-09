@@ -1,0 +1,8 @@
+{
+  "name": "ficha-tecnica-bar",
+  "private": true,
+  "description": "App client-side (sem build) de custeio de receitas para bar - o package.json existe so pra rodar os testes.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
