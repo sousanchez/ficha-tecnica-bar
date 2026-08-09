@@ -5,6 +5,7 @@ let state = {
   insumoFiltro: '',
   editingReceitaId: null,
   editingProducaoId: null,
+  editingEventoId: null,
 };
 
 // Lista fixa de categorias de insumo (bar). Um valor ja salvo que nao esteja
@@ -89,6 +90,13 @@ function attachGlobalHandlers() {
     }
   });
 
+  document.getElementById('btn-add-evento').addEventListener('click', addEvento);
+  document.getElementById('modal-evento-close').addEventListener('click', () => { closeEventoEditor(); refreshAll(); });
+  document.getElementById('modal-evento-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-evento-overlay') { closeEventoEditor(); refreshAll(); }
+  });
+  document.getElementById('btn-delete-evento').addEventListener('click', () => deleteEvento(state.editingEventoId));
+
   bindFormFields(
     ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-preco-venda', 're-utensilios', 're-tempo-preparo', 're-rendimento', 're-vendas-periodo'],
     {
@@ -110,6 +118,17 @@ function attachGlobalHandlers() {
     updateInsumoField
   );
   bindAddItemRow('btn-add-pritem', 'pr-add-insumo', 'pr-add-qtd', 'pr-add-unidade', () => state.editingProducaoId, addProducaoItem);
+
+  bindFormFields(
+    ['ev-nome', 'ev-data', 'ev-convidados', 'ev-horas', 'ev-doses-por-pessoa', 'ev-preco-pacote-pessoa'],
+    {
+      'ev-nome': 'nome', 'ev-data': 'data', 'ev-convidados': 'convidados', 'ev-horas': 'horas',
+      'ev-doses-por-pessoa': 'doses_por_pessoa', 'ev-preco-pacote-pessoa': 'preco_pacote_pessoa',
+    },
+    ['convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa'],
+    () => state.editingEventoId,
+    updateEventoField
+  );
 }
 
 document.addEventListener('DOMContentLoaded', init);
