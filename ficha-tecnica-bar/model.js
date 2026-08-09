@@ -262,8 +262,18 @@ function computeMenuEngineering(todasReceitas = getReceitas()) {
   return quad;
 }
 
+// ---------- Eventos (pacotes) ----------
+// Custo medio por dose entre os drinks selecionados, escalado por quantas
+// doses cada convidado consome. Funcao pura - recebe os custos ja calculados
+// em vez de buscar do banco, pra dar pra testar sem sql.js/localStorage.
+function calcCustoEventoPessoa(custosDasReceitas, dosesPorPessoa) {
+  if (!custosDasReceitas.length) return 0;
+  const mediaCusto = custosDasReceitas.reduce((s, c) => s + c, 0) / custosDasReceitas.length;
+  return mediaCusto * dosesPorPessoa;
+}
+
 // Exporta as funcoes puras pro test runner (Node). No browser `module` nao
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
-  module.exports = { calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass };
+  module.exports = { calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa };
 }

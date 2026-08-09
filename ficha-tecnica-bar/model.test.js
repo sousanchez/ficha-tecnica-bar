@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calcIndicadores, computeMenuEngineering, cmvClass } = require('./model.js');
+const { calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
   const { cmv, markup, margem } = calcIndicadores(10, 40);
@@ -59,4 +59,21 @@ test('computeMenuEngineering: ignora receitas sem venda no periodo na classifica
   const todos = [...quad.estrela, ...quad.cavalo, ...quad.enigma, ...quad.abacaxi];
   assert.equal(todos.length, 1);
   assert.equal(todos[0].nome, 'Com venda');
+});
+
+test('calcCustoEventoPessoa: lista vazia -> 0 (sem drink selecionado)', () => {
+  assert.equal(calcCustoEventoPessoa([], 5), 0);
+});
+
+test('calcCustoEventoPessoa: 1 drink, 1 dose por pessoa -> custo do proprio drink', () => {
+  assert.equal(calcCustoEventoPessoa([10], 1), 10);
+});
+
+test('calcCustoEventoPessoa: media simples entre varios drinks, escalada por doses/pessoa', () => {
+  // media de [10, 20, 30] = 20; 20 x 3 doses/pessoa = 60
+  assert.equal(calcCustoEventoPessoa([10, 20, 30], 3), 60);
+});
+
+test('calcCustoEventoPessoa: doses_por_pessoa = 0 -> 0 mesmo com drinks selecionados', () => {
+  assert.equal(calcCustoEventoPessoa([10, 20], 0), 0);
 });
