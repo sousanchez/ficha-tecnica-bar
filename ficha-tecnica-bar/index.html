@@ -20,6 +20,7 @@
     <button class="tab-btn active" data-tab="insumos">Insumos</button>
     <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
     <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="eventos">Eventos</button>
   </nav>
 
   <main>
@@ -86,6 +87,14 @@
 
       <h3>Engenharia de cardápio</h3>
       <div id="menu-engineering"></div>
+    </section>
+
+    <section id="tab-eventos" class="tab-panel">
+      <div class="toolbar">
+        <span class="muted">Pacotes de evento (custo e preço por pessoa)</span>
+        <button id="btn-add-evento" class="btn">+ Novo evento</button>
+      </div>
+      <div id="eventos-list" class="receitas-grid"></div>
     </section>
   </main>
 
@@ -189,6 +198,39 @@
 
       <div class="modal-footer">
         <button id="btn-delete-producao" class="btn danger">Excluir produção interna</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-evento-overlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <input id="ev-nome" type="text" class="modal-title-input" placeholder="Nome do evento">
+        <button id="modal-evento-close" class="icon-btn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <label>Data <input id="ev-data" type="date"></label>
+          <label>Convidados <input id="ev-convidados" type="number" step="1"></label>
+          <label>Duração (horas) <input id="ev-horas" type="number" step="0.5"></label>
+          <label>Doses por pessoa <input id="ev-doses-por-pessoa" type="number" step="0.5"></label>
+          <label>Preço do pacote por pessoa <input id="ev-preco-pacote-pessoa" type="number" step="0.01"></label>
+        </div>
+
+        <h3>Drinks do pacote</h3>
+        <div id="ev-receitas-checklist" class="checklist"></div>
+
+        <div class="indicadores">
+          <div class="indicador"><span>Custo/pessoa</span><strong id="ev-custo-pessoa">R$ 0,00</strong></div>
+          <div class="indicador"><span>CMV</span><strong id="ev-cmv" class="badge">-</strong></div>
+          <div class="indicador"><span>Markup</span><strong id="ev-markup">-</strong></div>
+          <div class="indicador"><span>Margem/pessoa</span><strong id="ev-margem">R$ 0,00</strong></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-delete-evento" class="btn danger">Excluir evento</button>
       </div>
     </div>
   </div>
