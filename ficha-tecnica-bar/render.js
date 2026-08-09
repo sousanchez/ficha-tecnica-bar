@@ -10,8 +10,10 @@ function refreshAll() {
   renderInsumos();
   renderReceitas();
   renderDashboard();
+  renderEventos();
   if (state.editingReceitaId) renderReceitaEditor();
   if (state.editingProducaoId) renderProducaoEditor();
+  if (state.editingEventoId) renderEventoEditor();
 }
 
 function renderTabs() {
@@ -142,6 +144,22 @@ function renderMenuEngineering() {
     </div>`;
 }
 
+function renderEventos() {
+  const eventos = getEventos();
+  const list = document.getElementById('eventos-list');
+  list.innerHTML = eventos.map((e) => {
+    const { cmv } = calcIndicadores(e.custoPorPessoa, e.preco_pacote_pessoa);
+    return `
+      <div class="receita-card" onclick="openEventoEditor(${e.id})">
+        <div class="receita-card-title">${escapeHtml(e.nome)}</div>
+        <div class="receita-card-row"><span>Convidados</span><strong>${e.convidados}</strong></div>
+        <div class="receita-card-row"><span>Custo/pessoa</span><strong>${fmtMoeda(e.custoPorPessoa)}</strong></div>
+        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${fmtPct(cmv)}</strong></div>
+      </div>
+    `;
+  }).join('') || '<p class="muted">Nenhum evento cadastrado ainda.</p>';
+}
+
 // Renderiza a tabela de itens (insumo/quantidade/unidade/custo) usada tanto pelo
 // editor de receita quanto pelo de producao interna - a estrutura e identica,
 // so mudam os dados e as funcoes de atualizar/remover.
@@ -252,6 +270,64 @@ function renderReceitaEditor() {
   const insumos = getInsumosParaSelect();
   select.innerHTML = '<option value="">Selecionar insumo...</option>' + insumos.map((i) => `<option value="${i.id}" data-un="${i.unidade_compra}">${escapeHtml(i.nome)}</option>`).join('');
   updateUnidadeAviso(select, document.getElementById('re-add-unidade'));
+}
+
+// ---------- Editor de evento (modal) ----------
+function openEventoEditor(id) {
+  state.editingEventoId = id;
+  document.getElementById('modal-evento-overlay').classList.add('active');
+  renderEventoEditor();
+}
+function closeEventoEditor() {
+  state.editingEventoId = null;
+  document.getElementById('modal-evento-overlay').classList.remove('active');
+}
+function renderEventoEditor() {
+  const ev = getEvento(state.editingEventoId);
+  if (!ev) return;
+
+  document.getElementById('ev-nome').value = ev.nome;
+  document.getElementById('ev-data').value = ev.data || '';
+  document.getElementById('ev-convidados').value = ev.convidados;
+  document.getElementById('ev-horas').value = ev.horas;
+  document.getElementById('ev-doses-por-pessoa').value = ev.doses_por_pessoa;
+  document.getElementById('ev-preco-pacote-pessoa').value = ev.preco_pacote_pessoa;
+
+  const todasReceitas = getReceitas();
+  const selecionadasIds = new Set(ev.receitas.map((r) => r.id));
+  const checklist = document.getElementById('ev-receitas-checklist');
+  checklist.innerHTML = todasReceitas.map((r) => `
+    <label class="checklist-item">
+      <span><input type="checkbox" data-receita-id="${r.id}" ${selecionadasIds.has(r.id) ? 'checked' : ''}> ${escapeHtml(r.nome)}</span>
+      <span class="muted">${fmtMoeda(r.custo)}</span>
+    </label>
+  `).join('') || '<p class="muted">Nenhuma ficha tecnica cadastrada ainda.</p>';
+
+  checklist.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+    el.addEventListener('change', (e) => {
+      const receitaId = Number(e.target.dataset.receitaId);
+      if (e.target.checked) {
+        addEventoReceita(ev.id, receitaId);
+      } else {
+        const vinculo = ev.receitas.find((r) => r.id === receitaId);
+        if (vinculo) removeEventoReceita(vinculo.vinculo_id);
+      }
+      refreshAll();
+    });
+  });
+
+  const custosSelecionados = ev.receitas.map((r) => r.custo);
+  const custoPorPessoa = calcCustoEventoPessoa(custosSelecionados, ev.doses_por_pessoa);
+  const { cmv, markup, margem } = calcIndicadores(custoPorPessoa, ev.preco_pacote_pessoa);
+
+  document.getElementById('ev-custo-pessoa').textContent = ev.receitas.length
+    ? fmtMoeda(custoPorPessoa)
+    : 'Selecione ao menos 1 drink';
+  const cmvEl = document.getElementById('ev-cmv');
+  cmvEl.textContent = fmtPct(cmv);
+  cmvEl.className = 'badge ' + cmvClass(cmv);
+  document.getElementById('ev-markup').textContent = markup ? markup.toFixed(2) + 'x' : '-';
+  document.getElementById('ev-margem').textContent = fmtMoeda(margem);
 }
 
 // Avisa quando o insumo selecionado para adicionar a uma receita/producao ainda
