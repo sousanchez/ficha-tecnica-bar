@@ -44,6 +44,21 @@ CREATE TABLE IF NOT EXISTS producao_itens (
   ingrediente_id INTEGER NOT NULL REFERENCES insumos(id),
   quantidade REAL NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS eventos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  data TEXT DEFAULT '',
+  convidados INTEGER DEFAULT 0,
+  horas REAL DEFAULT 0,
+  doses_por_pessoa REAL DEFAULT 0,
+  preco_pacote_pessoa REAL DEFAULT 0,
+  ativo INTEGER DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS evento_receitas (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  evento_id INTEGER NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
+  receita_id INTEGER NOT NULL REFERENCES receitas(id)
+);
 `;
 
 let SQL = null;
