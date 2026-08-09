@@ -201,6 +201,11 @@ function addReceita() {
   openReceitaEditor(id);
 }
 function deleteReceita(id) {
+  const usadoEvento = query('SELECT COUNT(*) as c FROM evento_receitas WHERE receita_id = ?', [id])[0].c;
+  if (usadoEvento > 0) {
+    alert('Esta ficha tecnica esta sendo usada em um ou mais eventos e nao pode ser excluida. Remova-a de la primeiro.');
+    return;
+  }
   if (!confirm('Excluir esta ficha tecnica?')) return;
   run('DELETE FROM receita_itens WHERE receita_id = ?', [id]);
   run('DELETE FROM receitas WHERE id = ?', [id]);
@@ -270,6 +275,51 @@ function calcCustoEventoPessoa(custosDasReceitas, dosesPorPessoa) {
   if (!custosDasReceitas.length) return 0;
   const mediaCusto = custosDasReceitas.reduce((s, c) => s + c, 0) / custosDasReceitas.length;
   return mediaCusto * dosesPorPessoa;
+}
+function getEventos() {
+  return query('SELECT * FROM eventos ORDER BY nome').map((e) => ({ ...e, custoPorPessoa: calcCustoEvento(e.id) }));
+}
+function getEvento(id) {
+  const e = query('SELECT * FROM eventos WHERE id = ?', [id])[0];
+  if (!e) return null;
+  const receitas = query(
+    `SELECT er.id as vinculo_id, r.id, r.nome
+     FROM evento_receitas er JOIN receitas r ON r.id = er.receita_id
+     WHERE er.evento_id = ? ORDER BY r.nome`, [id]
+  ).map((r) => ({ ...r, custo: calcCustoReceita(r.id) }));
+  return { ...e, receitas };
+}
+function addEvento() {
+  const id = runInsert(`INSERT INTO eventos (nome, data, convidados, horas, doses_por_pessoa, preco_pacote_pessoa, ativo)
+       VALUES ('Novo evento', '', 0, 0, 0, 0, 1)`);
+  openEventoEditor(id);
+}
+function updateEventoField(id, field, value) {
+  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa'];
+  setField('eventos', allowed, id, field, value);
+}
+function deleteEvento(id) {
+  if (!confirm('Excluir este evento?')) return;
+  run('DELETE FROM evento_receitas WHERE evento_id = ?', [id]);
+  run('DELETE FROM eventos WHERE id = ?', [id]);
+  closeEventoEditor();
+  refreshAll();
+}
+function addEventoReceita(eventoId, receitaId) {
+  const jaExiste = query('SELECT id FROM evento_receitas WHERE evento_id = ? AND receita_id = ?', [eventoId, receitaId]).length > 0;
+  if (jaExiste) return;
+  run('INSERT INTO evento_receitas (evento_id, receita_id) VALUES (?, ?)', [eventoId, receitaId]);
+}
+function removeEventoReceita(vinculoId) {
+  run('DELETE FROM evento_receitas WHERE id = ?', [vinculoId]);
+}
+function calcCustoEvento(eventoId) {
+  const custos = query(
+    `SELECT r.id FROM evento_receitas er JOIN receitas r ON r.id = er.receita_id WHERE er.evento_id = ?`,
+    [eventoId]
+  ).map((r) => calcCustoReceita(r.id));
+  const evento = query('SELECT doses_por_pessoa FROM eventos WHERE id = ?', [eventoId])[0];
+  return calcCustoEventoPessoa(custos, evento ? evento.doses_por_pessoa : 0);
 }
 
 // Exporta as funcoes puras pro test runner (Node). No browser `module` nao
