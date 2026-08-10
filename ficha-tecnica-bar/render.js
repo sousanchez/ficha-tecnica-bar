@@ -11,7 +11,7 @@ function refreshAll() {
   renderReceitas();
   renderDashboard();
   renderEventos();
-  if (state.editingReceitaId) renderReceitaEditor();
+  if (state.editingReceitaId) renderReceitaEditorCampos();
   if (state.editingProducaoId) renderProducaoEditor();
   if (state.editingEventoId) renderEventoEditor();
 }
@@ -225,33 +225,69 @@ function renderProducaoEditor() {
 }
 
 // ---------- Editor de receita (modal) ----------
+// Edicao em rascunho: nada grava no banco ate clicar Salvar (main.js).
+// renderReceitaEditorCampos() repovoa os inputs - roda so ao abrir ou depois
+// de salvar. renderReceitaEditorComputados() so atualiza as areas derivadas
+// (custo/CMV/preco sugerido/tabela de itens) e roda a cada edicao no
+// rascunho - nunca reescreve o .value de um campo, senao o cursor pula pro
+// fim do campo a cada tecla digitada.
+function abrirRascunhoDaReceita(id) {
+  const r = getReceita(id);
+  state.receitaDraft = {
+    nome: r.nome, categoria: r.categoria, copo: r.copo, guarnicao: r.guarnicao, modo_preparo: r.modo_preparo,
+    preco_venda: r.preco_venda, utensilios: r.utensilios, tempo_preparo: r.tempo_preparo, rendimento: r.rendimento,
+    vendas_periodo: r.vendas_periodo, markup_alvo: r.markup_alvo || 0,
+    itens: r.itens.map((it) => ({ id: it.id, tempId: null, insumo_id: it.insumo_id, quantidade: it.quantidade, nome: it.nome, unidade_compra: it.unidade_compra, preco_unitario: it.preco_unitario })),
+  };
+  state.receitaDraftSalvo = JSON.parse(JSON.stringify(state.receitaDraft));
+}
 function openReceitaEditor(id) {
   state.editingReceitaId = id;
+  abrirRascunhoDaReceita(id);
   document.getElementById('modal-overlay').classList.add('active');
-  renderReceitaEditor();
+  renderReceitaEditorCampos();
 }
 function closeReceitaEditor() {
   state.editingReceitaId = null;
   document.getElementById('modal-overlay').classList.remove('active');
 }
-function renderReceitaEditor() {
-  const r = getReceita(state.editingReceitaId);
-  if (!r) return;
-  const custo = calcCustoReceita(r.id);
-  const { cmv, markup, margem } = calcIndicadores(custo, r.preco_venda);
+function fecharReceitaEditorComCheck() {
+  const sujo = JSON.stringify(state.receitaDraft) !== JSON.stringify(state.receitaDraftSalvo);
+  if (sujo && !confirm('Você tem alterações não salvas. Sair mesmo assim?')) return;
+  closeReceitaEditor();
+  refreshAll();
+}
+function renderReceitaEditorCampos() {
+  const d = state.receitaDraft;
+  if (!d) return;
+  document.getElementById('re-nome').value = d.nome;
+  document.getElementById('re-categoria').value = d.categoria || '';
+  document.getElementById('re-copo').value = d.copo || '';
+  document.getElementById('re-guarnicao').value = d.guarnicao || '';
+  document.getElementById('re-modo-preparo').value = d.modo_preparo || '';
+  document.getElementById('re-preco-venda').value = d.preco_venda;
+  document.getElementById('re-utensilios').value = d.utensilios || '';
+  document.getElementById('re-tempo-preparo').value = d.tempo_preparo || '';
+  document.getElementById('re-rendimento').value = d.rendimento || '';
+  document.getElementById('re-vendas-periodo').value = d.vendas_periodo || 0;
+  document.getElementById('re-markup-alvo').value = d.markup_alvo || 0;
 
-  document.getElementById('re-nome').value = r.nome;
-  document.getElementById('re-categoria').value = r.categoria || '';
-  document.getElementById('re-copo').value = r.copo || '';
-  document.getElementById('re-guarnicao').value = r.guarnicao || '';
-  document.getElementById('re-modo-preparo').value = r.modo_preparo || '';
-  document.getElementById('re-preco-venda').value = r.preco_venda;
-  document.getElementById('re-utensilios').value = r.utensilios || '';
-  document.getElementById('re-tempo-preparo').value = r.tempo_preparo || '';
-  document.getElementById('re-rendimento').value = r.rendimento || '';
-  document.getElementById('re-vendas-periodo').value = r.vendas_periodo || 0;
+  const select = document.getElementById('re-add-insumo');
+  const insumos = getInsumosParaSelect();
+  select.innerHTML = '<option value="">Selecionar insumo...</option>' + insumos.map((i) => `<option value="${i.id}" data-un="${i.unidade_compra}">${escapeHtml(i.nome)}</option>`).join('');
+  updateUnidadeAviso(select, document.getElementById('re-add-unidade'));
+
+  renderReceitaEditorComputados();
+}
+function renderReceitaEditorComputados() {
+  const d = state.receitaDraft;
+  if (!d) return;
+  const custo = calcCustoDraftItens(d.itens);
+  const precoSugerido = calcPrecoSugerido(custo, d.markup_alvo || 0);
+  const { cmv, markup, margem } = calcIndicadores(custo, d.preco_venda);
 
   document.getElementById('re-custo').textContent = fmtMoeda(custo);
+  document.getElementById('re-preco-sugerido').textContent = fmtMoeda(precoSugerido);
   const cmvEl = document.getElementById('re-cmv');
   cmvEl.textContent = fmtPct(cmv);
   cmvEl.className = 'badge ' + cmvClass(cmv);
@@ -260,16 +296,28 @@ function renderReceitaEditor() {
 
   renderItemsTable(
     document.getElementById('re-itens-tbody'),
-    r.itens,
+    d.itens.map((it) => ({ ...it, id: it.id ?? it.tempId })),
     'Nenhum insumo adicionado',
-    updateReceitaItemQtd,
-    removeReceitaItem
+    draftUpdateItemQtd,
+    draftRemoveItem
   );
+}
 
-  const select = document.getElementById('re-add-insumo');
-  const insumos = getInsumosParaSelect();
-  select.innerHTML = '<option value="">Selecionar insumo...</option>' + insumos.map((i) => `<option value="${i.id}" data-un="${i.unidade_compra}">${escapeHtml(i.nome)}</option>`).join('');
-  updateUnidadeAviso(select, document.getElementById('re-add-unidade'));
+let nextTempId = -1;
+function draftAddItem(insumoId, quantidade) {
+  const insumo = query('SELECT nome, unidade_compra, preco_unitario FROM insumos WHERE id = ?', [insumoId])[0];
+  if (!insumo) return;
+  state.receitaDraft.itens.push({ id: null, tempId: nextTempId--, insumo_id: insumoId, quantidade, ...insumo });
+  renderReceitaEditorComputados();
+}
+function draftUpdateItemQtd(itemId, quantidade) {
+  const it = state.receitaDraft.itens.find((i) => (i.id ?? i.tempId) === itemId);
+  if (it) it.quantidade = quantidade;
+  renderReceitaEditorComputados();
+}
+function draftRemoveItem(itemId) {
+  state.receitaDraft.itens = state.receitaDraft.itens.filter((i) => (i.id ?? i.tempId) !== itemId);
+  renderReceitaEditorComputados();
 }
 
 // ---------- Editor de evento (modal) ----------
