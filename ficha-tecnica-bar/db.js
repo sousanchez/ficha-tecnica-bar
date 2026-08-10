@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS receitas (
   utensilios TEXT DEFAULT '',
   tempo_preparo TEXT DEFAULT '',
   rendimento TEXT DEFAULT '',
-  vendas_periodo REAL DEFAULT 0
+  vendas_periodo REAL DEFAULT 0,
+  markup_alvo REAL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS receita_itens (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,6 +98,7 @@ function migrateSchema() {
   addColIfMissing('receitas', "tempo_preparo TEXT DEFAULT ''");
   addColIfMissing('receitas', "rendimento TEXT DEFAULT ''");
   addColIfMissing('receitas', 'vendas_periodo REAL DEFAULT 0');
+  addColIfMissing('receitas', 'markup_alvo REAL DEFAULT 0');
   db.run("UPDATE insumos SET tipo = 'comprado' WHERE tipo IS NULL");
   db.run('UPDATE insumos SET fator_correcao = 1 WHERE fator_correcao IS NULL');
   db.run('UPDATE insumos SET estoque_minimo = 0 WHERE estoque_minimo IS NULL');

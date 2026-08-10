@@ -196,8 +196,8 @@ function calcCustoReceita(receitaId) {
   return rows.reduce((sum, r) => sum + r.quantidade * r.preco_unitario, 0);
 }
 function addReceita() {
-  const id = runInsert(`INSERT INTO receitas (nome, categoria, modo_preparo, copo, guarnicao, preco_venda, ativo, utensilios, tempo_preparo, rendimento, vendas_periodo)
-       VALUES ('Nova receita', '', '', '', '', 0, 1, '', '', '', 0)`);
+  const id = runInsert(`INSERT INTO receitas (nome, categoria, modo_preparo, copo, guarnicao, preco_venda, ativo, utensilios, tempo_preparo, rendimento, vendas_periodo, markup_alvo)
+       VALUES ('Nova receita', '', '', '', '', 0, 1, '', '', '', 0, 0)`);
   openReceitaEditor(id);
 }
 function deleteReceita(id) {
@@ -213,7 +213,7 @@ function deleteReceita(id) {
   refreshAll();
 }
 function updateReceitaField(id, field, value) {
-  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo'];
+  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo', 'markup_alvo'];
   setField('receitas', allowed, id, field, value);
 }
 function addReceitaItem(receitaId, insumoId, quantidade) {
