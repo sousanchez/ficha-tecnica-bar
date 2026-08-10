@@ -6,6 +6,8 @@ let state = {
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
+  receitaDraft: null,
+  receitaDraftSalvo: null,
 };
 
 // Lista fixa de categorias de insumo (bar). Um valor ja salvo que nao esteja
@@ -30,6 +32,20 @@ function bindFormFields(ids, fieldMap, numericFields, getEditingId, updateFn) {
   });
 }
 
+// Igual a bindFormFields, mas grava no rascunho da receita em memoria (state.receitaDraft)
+// em vez de gravar direto no banco - nada persiste ate clicar Salvar.
+function bindDraftFormFields(ids, fieldMap, numericFields) {
+  ids.forEach((id) => {
+    document.getElementById(id).addEventListener('input', (e) => {
+      const field = fieldMap[id];
+      let value = e.target.value;
+      if (numericFields.includes(field)) value = parseFloat(value) || 0;
+      state.receitaDraft[field] = value;
+      renderReceitaEditorComputados();
+    });
+  });
+}
+
 // Liga a linha "selecionar insumo + quantidade + adicionar" usada pelos dois editores.
 function bindAddItemRow(btnId, selectId, qtdId, unidadeId, getEditingId, addFn) {
   const select = document.getElementById(selectId);
@@ -46,6 +62,26 @@ function bindAddItemRow(btnId, selectId, qtdId, unidadeId, getEditingId, addFn) 
     updateUnidadeAviso(select, spanEl);
     refreshAll();
   });
+}
+
+function salvarReceita() {
+  const id = state.editingReceitaId;
+  const d = state.receitaDraft;
+  const allowed = ['nome', 'categoria', 'copo', 'guarnicao', 'modo_preparo', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo', 'markup_alvo'];
+  for (const field of allowed) updateReceitaField(id, field, d[field]);
+
+  const itensBanco = query('SELECT id FROM receita_itens WHERE receita_id = ?', [id]);
+  const idsNoRascunho = new Set(d.itens.filter((it) => it.id).map((it) => it.id));
+  for (const it of itensBanco) {
+    if (!idsNoRascunho.has(it.id)) removeReceitaItem(it.id);
+  }
+  for (const it of d.itens) {
+    if (it.id) updateReceitaItemQtd(it.id, it.quantidade);
+    else addReceitaItem(id, it.insumo_id, it.quantidade);
+  }
+
+  abrirRascunhoDaReceita(id);
+  refreshAll();
 }
 
 function attachGlobalHandlers() {
@@ -70,10 +106,11 @@ function attachGlobalHandlers() {
     e.target.value = '';
   });
 
-  document.getElementById('modal-close').addEventListener('click', () => { closeReceitaEditor(); refreshAll(); });
+  document.getElementById('modal-close').addEventListener('click', fecharReceitaEditorComCheck);
   document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-overlay') { closeReceitaEditor(); refreshAll(); }
+    if (e.target.id === 'modal-overlay') fecharReceitaEditorComCheck();
   });
+  document.getElementById('btn-salvar-receita').addEventListener('click', salvarReceita);
   document.getElementById('btn-delete-receita').addEventListener('click', () => deleteReceita(state.editingReceitaId));
   document.getElementById('btn-print-receita').addEventListener('click', () => printReceita(state.editingReceitaId));
 
@@ -97,18 +134,37 @@ function attachGlobalHandlers() {
   });
   document.getElementById('btn-delete-evento').addEventListener('click', () => deleteEvento(state.editingEventoId));
 
-  bindFormFields(
-    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-preco-venda', 're-utensilios', 're-tempo-preparo', 're-rendimento', 're-vendas-periodo'],
+  bindDraftFormFields(
+    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-preco-venda', 're-utensilios', 're-tempo-preparo', 're-rendimento', 're-vendas-periodo', 're-markup-alvo'],
     {
       're-nome': 'nome', 're-categoria': 'categoria', 're-copo': 'copo', 're-guarnicao': 'guarnicao',
       're-modo-preparo': 'modo_preparo', 're-preco-venda': 'preco_venda', 're-utensilios': 'utensilios',
       're-tempo-preparo': 'tempo_preparo', 're-rendimento': 'rendimento', 're-vendas-periodo': 'vendas_periodo',
+      're-markup-alvo': 'markup_alvo',
     },
-    ['preco_venda', 'vendas_periodo'],
-    () => state.editingReceitaId,
-    updateReceitaField
+    ['preco_venda', 'vendas_periodo', 'markup_alvo']
   );
-  bindAddItemRow('btn-add-item', 're-add-insumo', 're-add-qtd', 're-add-unidade', () => state.editingReceitaId, addReceitaItem);
+
+  const reAddInsumoSelect = document.getElementById('re-add-insumo');
+  reAddInsumoSelect.addEventListener('change', (e) => updateUnidadeAviso(e.target, document.getElementById('re-add-unidade')));
+  document.getElementById('btn-add-item').addEventListener('click', () => {
+    const qtdInput = document.getElementById('re-add-qtd');
+    const insumoId = Number(reAddInsumoSelect.value);
+    const qtd = parseFloat(qtdInput.value);
+    if (!insumoId || !qtd) return;
+    draftAddItem(insumoId, qtd);
+    qtdInput.value = '';
+    reAddInsumoSelect.value = '';
+    updateUnidadeAviso(reAddInsumoSelect, document.getElementById('re-add-unidade'));
+  });
+
+  document.getElementById('btn-aplicar-preco-sugerido').addEventListener('click', () => {
+    const custo = calcCustoDraftItens(state.receitaDraft.itens);
+    const sugerido = calcPrecoSugerido(custo, state.receitaDraft.markup_alvo || 0);
+    state.receitaDraft.preco_venda = sugerido;
+    document.getElementById('re-preco-venda').value = sugerido;
+    renderReceitaEditorComputados();
+  });
 
   bindFormFields(
     ['pr-nome', 'pr-categoria', 'pr-unidade', 'pr-rendimento', 'pr-fator'],
