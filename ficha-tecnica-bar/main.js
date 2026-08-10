@@ -113,6 +113,14 @@ function attachGlobalHandlers() {
   document.getElementById('btn-salvar-receita').addEventListener('click', salvarReceita);
   document.getElementById('btn-delete-receita').addEventListener('click', () => deleteReceita(state.editingReceitaId));
   document.getElementById('btn-print-receita').addEventListener('click', () => printReceita(state.editingReceitaId));
+  window.addEventListener('beforeunload', (e) => {
+    if (!state.editingReceitaId) return;
+    const sujo = JSON.stringify(state.receitaDraft) !== JSON.stringify(state.receitaDraftSalvo);
+    if (sujo) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
 
   document.getElementById('modal-producao-close').addEventListener('click', () => { closeProducaoEditor(); refreshAll(); });
   document.getElementById('modal-producao-overlay').addEventListener('click', (e) => {
@@ -160,7 +168,7 @@ function attachGlobalHandlers() {
 
   document.getElementById('btn-aplicar-preco-sugerido').addEventListener('click', () => {
     const custo = calcCustoDraftItens(state.receitaDraft.itens);
-    const sugerido = calcPrecoSugerido(custo, state.receitaDraft.markup_alvo || 0);
+    const sugerido = Math.round(calcPrecoSugerido(custo, state.receitaDraft.markup_alvo || 0) * 100) / 100;
     state.receitaDraft.preco_venda = sugerido;
     document.getElementById('re-preco-venda').value = sugerido;
     renderReceitaEditorComputados();
