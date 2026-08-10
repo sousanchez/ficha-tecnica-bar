@@ -322,8 +322,16 @@ function calcCustoEvento(eventoId) {
   return calcCustoEventoPessoa(custos, evento ? evento.doses_por_pessoa : 0);
 }
 
+// ---------- Ficha tecnica: markup alvo e preco sugerido ----------
+function calcPrecoSugerido(custo, markupAlvo) {
+  return custo * markupAlvo;
+}
+function calcCustoDraftItens(itens) {
+  return itens.reduce((sum, it) => sum + it.quantidade * it.preco_unitario, 0);
+}
+
 // Exporta as funcoes puras pro test runner (Node). No browser `module` nao
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
-  module.exports = { calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa };
+  module.exports = { calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido, calcCustoDraftItens };
 }

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa } = require('./model.js');
+const { calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido, calcCustoDraftItens } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
   const { cmv, markup, margem } = calcIndicadores(10, 40);
@@ -76,4 +76,33 @@ test('calcCustoEventoPessoa: media simples entre varios drinks, escalada por dos
 
 test('calcCustoEventoPessoa: doses_por_pessoa = 0 -> 0 mesmo com drinks selecionados', () => {
   assert.equal(calcCustoEventoPessoa([10, 20], 0), 0);
+});
+
+test('calcPrecoSugerido: custo x markup normal', () => {
+  assert.equal(calcPrecoSugerido(10, 3), 30);
+});
+
+test('calcPrecoSugerido: custo 0 -> 0', () => {
+  assert.equal(calcPrecoSugerido(0, 5), 0);
+});
+
+test('calcPrecoSugerido: markup 0 -> 0', () => {
+  assert.equal(calcPrecoSugerido(10, 0), 0);
+});
+
+test('calcPrecoSugerido: markup negativo -> sem trava, resultado negativo', () => {
+  assert.equal(calcPrecoSugerido(10, -1), -10);
+});
+
+test('calcCustoDraftItens: lista vazia -> 0', () => {
+  assert.equal(calcCustoDraftItens([]), 0);
+});
+
+test('calcCustoDraftItens: soma quantidade x preco_unitario de cada item', () => {
+  const itens = [
+    { quantidade: 30, preco_unitario: 0.05 },
+    { quantidade: 10, preco_unitario: 0.2 },
+  ];
+  // 30*0.05 + 10*0.2 = 1.5 + 2 = 3.5
+  assert.equal(calcCustoDraftItens(itens), 3.5);
 });
