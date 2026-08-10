@@ -266,3 +266,13 @@ h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
 }
 .checklist-item:last-child { border-bottom: none; }
 .checklist-item input[type="checkbox"] { margin-right: 6px; }
+
+.sugestao-preco {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -4px 0 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.sugestao-preco strong { color: var(--text); }

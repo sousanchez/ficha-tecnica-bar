@@ -111,10 +111,15 @@
           <label>Copo <input id="re-copo" type="text" placeholder="Ex: Rocks, Taça"></label>
           <label>Guarnição <input id="re-guarnicao" type="text" placeholder="Ex: Rodela de limão"></label>
           <label>Preço de venda <input id="re-preco-venda" type="number" step="0.01"></label>
+          <label>Markup alvo <input id="re-markup-alvo" type="number" step="0.5" placeholder="Ex: 3.5"></label>
           <label>Utensílios <input id="re-utensilios" type="text" placeholder="Ex: Coqueteleira, jigger, bailarina"></label>
           <label>Tempo de preparo <input id="re-tempo-preparo" type="text" placeholder="Ex: 3 min"></label>
           <label>Rendimento <input id="re-rendimento" type="text" placeholder="Ex: 1 dose de 200ml"></label>
           <label>Vendas no período (giro) <input id="re-vendas-periodo" type="number" step="1" placeholder="Ex: 40"></label>
+        </div>
+        <div class="sugestao-preco">
+          Preço sugerido: <strong id="re-preco-sugerido">R$ 0,00</strong>
+          <button id="btn-aplicar-preco-sugerido" class="btn secondary">Aplicar</button>
         </div>
         <label class="full">Modo de preparo
           <textarea id="re-modo-preparo" rows="3" placeholder="Descreva o preparo..."></textarea>
@@ -145,6 +150,7 @@
       </div>
 
       <div class="modal-footer">
+        <button id="btn-salvar-receita" class="btn">Salvar</button>
         <button id="btn-print-receita" class="btn secondary">Imprimir ficha técnica</button>
         <button id="btn-delete-receita" class="btn danger">Excluir ficha técnica</button>
       </div>
