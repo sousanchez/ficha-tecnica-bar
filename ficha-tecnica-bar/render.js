@@ -163,7 +163,7 @@ function renderEventos() {
 // Renderiza a tabela de itens (insumo/quantidade/unidade/custo) usada tanto pelo
 // editor de receita quanto pelo de producao interna - a estrutura e identica,
 // so mudam os dados e as funcoes de atualizar/remover.
-function renderItemsTable(tbody, itens, emptyMsg, onQtyChange, onRemove) {
+function renderItemsTable(tbody, itens, emptyMsg, onQtyChange, onRemove, skipRefreshAll) {
   tbody.innerHTML = itens.map((it) => `
     <tr>
       <td>${escapeHtml(it.nome)}</td>
@@ -177,13 +177,13 @@ function renderItemsTable(tbody, itens, emptyMsg, onQtyChange, onRemove) {
   tbody.querySelectorAll('input[data-item-id]').forEach((el) => {
     el.addEventListener('change', (e) => {
       onQtyChange(Number(e.target.dataset.itemId), parseFloat(e.target.value) || 0);
-      refreshAll();
+      if (!skipRefreshAll) refreshAll();
     });
   });
   tbody.querySelectorAll('button[data-remove-id]').forEach((el) => {
     el.addEventListener('click', (e) => {
       onRemove(Number(e.target.dataset.removeId));
-      refreshAll();
+      if (!skipRefreshAll) refreshAll();
     });
   });
 }
@@ -234,8 +234,8 @@ function renderProducaoEditor() {
 function abrirRascunhoDaReceita(id) {
   const r = getReceita(id);
   state.receitaDraft = {
-    nome: r.nome, categoria: r.categoria, copo: r.copo, guarnicao: r.guarnicao, modo_preparo: r.modo_preparo,
-    preco_venda: r.preco_venda, utensilios: r.utensilios, tempo_preparo: r.tempo_preparo, rendimento: r.rendimento,
+    nome: r.nome, categoria: r.categoria ?? '', copo: r.copo ?? '', guarnicao: r.guarnicao ?? '', modo_preparo: r.modo_preparo ?? '',
+    preco_venda: r.preco_venda, utensilios: r.utensilios ?? '', tempo_preparo: r.tempo_preparo ?? '', rendimento: r.rendimento ?? '',
     vendas_periodo: r.vendas_periodo, markup_alvo: r.markup_alvo || 0,
     itens: r.itens.map((it) => ({ id: it.id, tempId: null, insumo_id: it.insumo_id, quantidade: it.quantidade, nome: it.nome, unidade_compra: it.unidade_compra, preco_unitario: it.preco_unitario })),
   };
@@ -249,6 +249,8 @@ function openReceitaEditor(id) {
 }
 function closeReceitaEditor() {
   state.editingReceitaId = null;
+  state.receitaDraft = null;
+  state.receitaDraftSalvo = null;
   document.getElementById('modal-overlay').classList.remove('active');
 }
 function fecharReceitaEditorComCheck() {
@@ -299,7 +301,8 @@ function renderReceitaEditorComputados() {
     d.itens.map((it) => ({ ...it, id: it.id ?? it.tempId })),
     'Nenhum insumo adicionado',
     draftUpdateItemQtd,
-    draftRemoveItem
+    draftRemoveItem,
+    true
   );
 }
 
@@ -311,6 +314,10 @@ function draftAddItem(insumoId, quantidade) {
   renderReceitaEditorComputados();
 }
 function draftUpdateItemQtd(itemId, quantidade) {
+  if (quantidade <= 0) {
+    draftRemoveItem(itemId);
+    return;
+  }
   const it = state.receitaDraft.itens.find((i) => (i.id ?? i.tempId) === itemId);
   if (it) it.quantidade = quantidade;
   renderReceitaEditorComputados();
