@@ -1,6 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido, calcCustoDraftItens } = require('./model.js');
+const {
+  calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido,
+  calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+} = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
   const { cmv, markup, margem } = calcIndicadores(10, 40);
@@ -105,4 +108,35 @@ test('calcCustoDraftItens: soma quantidade x preco_unitario de cada item', () =>
   ];
   // 30*0.05 + 10*0.2 = 1.5 + 2 = 3.5
   assert.equal(calcCustoDraftItens(itens), 3.5);
+});
+
+test('calcCustoUnitario: caso normal (mesma formula de recalcInsumoUnitario)', () => {
+  // (100 / 1000) * 1.15 = 0.115 (com folga pra imprecisao de ponto flutuante)
+  assert.ok(Math.abs(calcCustoUnitario(100, 1000, 1.15) - 0.115) < 1e-9);
+});
+
+test('calcCustoUnitario: tamanho ou fator zero/invalido caem pro padrao (1)', () => {
+  assert.equal(calcCustoUnitario(100, 0, 1), 100);
+  assert.equal(calcCustoUnitario(100, 1, 0), 100);
+});
+
+test('calcTotaisEvento: multiplica por convidados e calcula lucro', () => {
+  const t = calcTotaisEvento(10, 25, 180);
+  assert.equal(t.custoTotal, 1800);
+  assert.equal(t.receitaTotal, 4500);
+  assert.equal(t.lucroTotal, 2700);
+});
+
+test('calcTotaisEvento: zero convidados -> tudo zero', () => {
+  const t = calcTotaisEvento(10, 25, 0);
+  assert.equal(t.custoTotal, 0);
+  assert.equal(t.receitaTotal, 0);
+  assert.equal(t.lucroTotal, 0);
+});
+
+test('cmvIcon: um simbolo por faixa, alinhado com cmvClass', () => {
+  assert.equal(cmvIcon(20), '✓ ');
+  assert.equal(cmvIcon(30), '! ');
+  assert.equal(cmvIcon(50), '✕ ');
+  assert.equal(cmvIcon(null), '');
 });

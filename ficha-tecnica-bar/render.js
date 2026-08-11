@@ -12,8 +12,8 @@ function refreshAll() {
   renderDashboard();
   renderEventos();
   if (state.editingReceitaId) renderReceitaEditorCampos();
-  if (state.editingProducaoId) renderProducaoEditor();
-  if (state.editingEventoId) renderEventoEditor();
+  if (state.editingProducaoId) renderProducaoEditorCampos();
+  if (state.editingEventoId) renderEventoEditorCampos();
 }
 
 function renderTabs() {
@@ -39,6 +39,22 @@ function unidadeOptionsHtml(valorAtual) {
 function renderInsumos() {
   const rows = getInsumos();
   const tbody = document.getElementById('insumos-tbody');
+
+  // O rebuild abaixo recria todos os inputs da tabela, entao o elemento focado
+  // (o que o usuario acabou de editar ou tabulou para) e destruido e o foco
+  // cai pro <body>. Capturamos aqui quem esta focado - pela combinacao
+  // insumo+campo, nao pela referencia do elemento - e restauramos apos o
+  // rebuild, senao Tab entre 224 linhas fica impossivel.
+  const ativo = document.activeElement;
+  const focoAnterior = ativo && tbody.contains(ativo) && ativo.dataset.insumoId
+    ? {
+        insumoId: ativo.dataset.insumoId,
+        field: ativo.dataset.field,
+        selectionStart: typeof ativo.selectionStart === 'number' ? ativo.selectionStart : null,
+        selectionEnd: typeof ativo.selectionEnd === 'number' ? ativo.selectionEnd : null,
+      }
+    : null;
+
   tbody.innerHTML = rows.map((r) => {
     const isProducao = r.tipo === 'producao_interna';
     const tipoBadge = isProducao
@@ -67,14 +83,33 @@ function renderInsumos() {
   }).join('');
   document.getElementById('insumos-count').textContent = `${rows.length} insumo(s)`;
 
+  if (focoAnterior) {
+    const seletor = `[data-insumo-id="${focoAnterior.insumoId}"][data-field="${focoAnterior.field}"]`;
+    const novoEl = tbody.querySelector(seletor);
+    if (novoEl) {
+      novoEl.focus();
+      if (focoAnterior.selectionStart !== null && novoEl.setSelectionRange) {
+        novoEl.setSelectionRange(focoAnterior.selectionStart, focoAnterior.selectionEnd);
+      }
+    }
+  }
+
   tbody.querySelectorAll('input, select').forEach((el) => {
     el.addEventListener('change', (e) => {
       const id = Number(e.target.dataset.insumoId);
       const field = e.target.dataset.field;
       let value = e.target.value;
       if (['preco_compra', 'tamanho_unidade', 'fator_correcao', 'estoque_minimo', 'estoque_atual'].includes(field)) value = parseFloat(value) || 0;
-      updateInsumoField(id, field, value);
-      refreshAll();
+      // O navegador so aplica o proximo foco (Tab para o campo seguinte, ou
+      // clique em outro campo) DEPOIS que o handler de 'change' termina - se
+      // o rebuild rodar aqui dentro, document.activeElement ainda e o campo
+      // antigo/<body>, nao o alvo real, e a restauracao de foco abaixo falha.
+      // Adiando pro proximo tick, o navegador ja aplicou o foco real quando
+      // o rebuild acontece.
+      setTimeout(() => {
+        updateInsumoField(id, field, value);
+        refreshAll();
+      }, 0);
     });
   });
 }
@@ -89,7 +124,7 @@ function renderReceitas() {
         <div class="receita-card-title">${escapeHtml(r.nome)}</div>
         <div class="receita-card-row"><span>Custo</span><strong>${fmtMoeda(r.custo)}</strong></div>
         <div class="receita-card-row"><span>Venda</span><strong>${fmtMoeda(r.preco_venda)}</strong></div>
-        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${fmtPct(cmv)}</strong></div>
+        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</strong></div>
         <div class="receita-card-row"><span>Margem</span><strong>${fmtMoeda(margem)}</strong></div>
       </div>
     `;
@@ -111,7 +146,7 @@ function renderDashboard() {
         <td>${escapeHtml(r.nome)}</td>
         <td class="num">${fmtMoeda(r.custo)}</td>
         <td class="num">${fmtMoeda(r.preco_venda)}</td>
-        <td class="num"><span class="badge ${cmvClass(cmv)}">${fmtPct(cmv)}</span></td>
+        <td class="num"><span class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</span></td>
         <td class="num">${markup ? markup.toFixed(2) + 'x' : '-'}</td>
         <td class="num">${fmtMoeda(margem)}</td>
         <td class="num">${r.vendas_periodo || '-'}</td>
@@ -124,7 +159,9 @@ function renderDashboard() {
 
 function renderMenuEngineering() {
   const container = document.getElementById('menu-engineering');
-  const quad = computeMenuEngineering();
+  const todasReceitas = getReceitas();
+  const semDado = todasReceitas.filter((r) => !(r.vendas_periodo > 0)).length;
+  const quad = computeMenuEngineering(todasReceitas);
   if (!quad) {
     container.innerHTML = '<p class="muted">Preencha o campo "Vendas no periodo" nas fichas tecnicas para ver a engenharia de cardapio aqui.</p>';
     return;
@@ -132,10 +169,14 @@ function renderMenuEngineering() {
   const item = (r) => `<div class="me-item"><span>${escapeHtml(r.nome)}</span><span class="muted">${r.vendas_periodo}x · ${fmtMoeda(r.margem)}</span></div>`;
   const box = (title, cls, items) => `
     <div class="me-quad ${cls}">
-      <h4>${title}</h4>
+      <h3>${title}</h3>
       ${items.length ? items.map(item).join('') : '<span class="muted">Nenhum item</span>'}
     </div>`;
+  const aviso = semDado
+    ? `<p class="muted aviso-dados-incompletos">${semDado} ficha(s) sem "Vendas no período" — não entraram nesta classificação.</p>`
+    : '';
   container.innerHTML = `
+    ${aviso}
     <div class="me-grid">
       ${box('⭐ Estrela — alta venda, boa margem', 'me-estrela', quad.estrela)}
       ${box('🐴 Cavalo de batalha — alta venda, margem baixa', 'me-cavalo', quad.cavalo)}
@@ -154,7 +195,7 @@ function renderEventos() {
         <div class="receita-card-title">${escapeHtml(e.nome)}</div>
         <div class="receita-card-row"><span>Convidados</span><strong>${e.convidados}</strong></div>
         <div class="receita-card-row"><span>Custo/pessoa</span><strong>${fmtMoeda(e.custoPorPessoa)}</strong></div>
-        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${fmtPct(cmv)}</strong></div>
+        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</strong></div>
       </div>
     `;
   }).join('') || '<p class="muted">Nenhum evento cadastrado ainda.</p>';
@@ -189,39 +230,92 @@ function renderItemsTable(tbody, itens, emptyMsg, onQtyChange, onRemove, skipRef
 }
 
 // ---------- Editor de producao interna (modal) ----------
+// Mesmo padrao de rascunho em memoria + Salvar explicito do editor de receita
+// (ver abrirRascunhoDaReceita abaixo) - nada grava no banco ate salvarProducao() (main.js).
+function abrirRascunhoDaProducao(id) {
+  const p = getProducao(id);
+  state.producaoDraft = {
+    nome: p.nome, categoria: p.categoria ?? '', unidade_compra: p.unidade_compra,
+    tamanho_unidade: p.tamanho_unidade, fator_correcao: p.fator_correcao,
+    itens: p.itens.map((it) => ({ id: it.id, tempId: null, ingrediente_id: it.ingrediente_id, quantidade: it.quantidade, nome: it.nome, unidade_compra: it.unidade_compra, preco_unitario: it.preco_unitario })),
+  };
+  state.producaoDraftSalvo = JSON.parse(JSON.stringify(state.producaoDraft));
+}
 function openProducaoEditor(id) {
   state.editingProducaoId = id;
+  abrirRascunhoDaProducao(id);
   document.getElementById('modal-producao-overlay').classList.add('active');
-  renderProducaoEditor();
+  renderProducaoEditorCampos();
 }
 function closeProducaoEditor() {
   state.editingProducaoId = null;
+  state.producaoDraft = null;
+  state.producaoDraftSalvo = null;
   document.getElementById('modal-producao-overlay').classList.remove('active');
 }
-function renderProducaoEditor() {
-  const p = getProducao(state.editingProducaoId);
-  if (!p) return;
+function fecharProducaoEditorComCheck() {
+  const sujo = JSON.stringify(state.producaoDraft) !== JSON.stringify(state.producaoDraftSalvo);
+  if (sujo && !confirm('Você tem alterações não salvas. Sair mesmo assim?')) return;
+  closeProducaoEditor();
+  refreshAll();
+}
+function renderProducaoEditorCampos() {
+  const d = state.producaoDraft;
+  if (!d) return;
+  document.getElementById('pr-nome').value = d.nome;
+  document.getElementById('pr-categoria').value = d.categoria || '';
+  document.getElementById('pr-unidade').value = d.unidade_compra;
+  document.getElementById('pr-rendimento').value = d.tamanho_unidade;
+  document.getElementById('pr-fator').value = d.fator_correcao;
 
-  document.getElementById('pr-nome').value = p.nome;
-  document.getElementById('pr-categoria').value = p.categoria || '';
-  document.getElementById('pr-unidade').value = p.unidade_compra;
-  document.getElementById('pr-rendimento').value = p.tamanho_unidade;
-  document.getElementById('pr-fator').value = p.fator_correcao;
-  document.getElementById('pr-custo-total').textContent = fmtMoeda(p.preco_compra);
-  document.getElementById('pr-custo-unitario').textContent = `${fmtMoeda(p.preco_unitario)} / ${p.unidade_compra}`;
+  const select = document.getElementById('pr-add-insumo');
+  const insumos = getInsumosExcluindo(state.editingProducaoId);
+  select.innerHTML = '<option value="">Selecionar insumo...</option>' + insumos.map((i) => `<option value="${i.id}" data-un="${i.unidade_compra}">${escapeHtml(i.nome)}</option>`).join('');
+  updateUnidadeAviso(select, document.getElementById('pr-add-unidade'));
+
+  renderProducaoEditorComputados();
+}
+function renderProducaoEditorComputados() {
+  const d = state.producaoDraft;
+  if (!d) return;
+  const custoTotal = calcCustoDraftItens(d.itens);
+  const custoUnitario = calcCustoUnitario(custoTotal, d.tamanho_unidade, d.fator_correcao);
+  document.getElementById('pr-custo-total').textContent = fmtMoeda(custoTotal);
+  document.getElementById('pr-custo-unitario').textContent = `${fmtMoeda(custoUnitario)} / ${d.unidade_compra}`;
 
   renderItemsTable(
     document.getElementById('pr-itens-tbody'),
-    p.itens,
+    d.itens.map((it) => ({ ...it, id: it.id ?? it.tempId })),
     'Nenhum ingrediente adicionado',
-    updateProducaoItemQtd,
-    removeProducaoItem
+    draftUpdateItemQtdProducao,
+    draftRemoveItemProducao,
+    true
   );
+}
 
-  const select = document.getElementById('pr-add-insumo');
-  const insumos = getInsumosExcluindo(p.id);
-  select.innerHTML = '<option value="">Selecionar insumo...</option>' + insumos.map((i) => `<option value="${i.id}" data-un="${i.unidade_compra}">${escapeHtml(i.nome)}</option>`).join('');
-  updateUnidadeAviso(select, document.getElementById('pr-add-unidade'));
+let nextTempIdProducao = -1;
+function draftAddItemProducao(ingredienteId, quantidade) {
+  if (Number(ingredienteId) === Number(state.editingProducaoId)) {
+    alert('Uma produção interna não pode usar a si mesma como ingrediente.');
+    return;
+  }
+  const insumo = query('SELECT nome, unidade_compra, preco_unitario FROM insumos WHERE id = ?', [ingredienteId])[0];
+  if (!insumo) return;
+  state.producaoDraft.itens.push({ id: null, tempId: nextTempIdProducao--, ingrediente_id: ingredienteId, quantidade, ...insumo });
+  renderProducaoEditorComputados();
+}
+function draftUpdateItemQtdProducao(itemId, quantidade) {
+  if (quantidade <= 0) {
+    draftRemoveItemProducao(itemId);
+    return;
+  }
+  const it = state.producaoDraft.itens.find((i) => (i.id ?? i.tempId) === itemId);
+  if (it) it.quantidade = quantidade;
+  renderProducaoEditorComputados();
+}
+function draftRemoveItemProducao(itemId) {
+  state.producaoDraft.itens = state.producaoDraft.itens.filter((i) => (i.id ?? i.tempId) !== itemId);
+  renderProducaoEditorComputados();
 }
 
 // ---------- Editor de receita (modal) ----------
@@ -291,7 +385,7 @@ function renderReceitaEditorComputados() {
   document.getElementById('re-custo').textContent = fmtMoeda(custo);
   document.getElementById('re-preco-sugerido').textContent = fmtMoeda(precoSugerido);
   const cmvEl = document.getElementById('re-cmv');
-  cmvEl.textContent = fmtPct(cmv);
+  cmvEl.textContent = cmvIcon(cmv) + fmtPct(cmv);
   cmvEl.className = 'badge ' + cmvClass(cmv);
   document.getElementById('re-markup').textContent = markup ? markup.toFixed(2) + 'x' : '-';
   document.getElementById('re-margem').textContent = fmtMoeda(margem);
@@ -328,28 +422,48 @@ function draftRemoveItem(itemId) {
 }
 
 // ---------- Editor de evento (modal) ----------
+// Mesmo padrao de rascunho + Salvar dos outros dois editores. O checklist de
+// drinks tambem vira parte do rascunho (receitaIds) - marcar/desmarcar nao
+// grava no banco, so acontece em salvarEvento() (main.js).
+function abrirRascunhoDoEvento(id) {
+  const e = getEvento(id);
+  state.eventoDraft = {
+    nome: e.nome, data: e.data || '', convidados: e.convidados, horas: e.horas,
+    doses_por_pessoa: e.doses_por_pessoa, preco_pacote_pessoa: e.preco_pacote_pessoa,
+    receitaIds: e.receitas.map((r) => r.id),
+  };
+  state.eventoDraftSalvo = JSON.parse(JSON.stringify(state.eventoDraft));
+}
 function openEventoEditor(id) {
   state.editingEventoId = id;
+  abrirRascunhoDoEvento(id);
   document.getElementById('modal-evento-overlay').classList.add('active');
-  renderEventoEditor();
+  renderEventoEditorCampos();
 }
 function closeEventoEditor() {
   state.editingEventoId = null;
+  state.eventoDraft = null;
+  state.eventoDraftSalvo = null;
   document.getElementById('modal-evento-overlay').classList.remove('active');
 }
-function renderEventoEditor() {
-  const ev = getEvento(state.editingEventoId);
-  if (!ev) return;
-
-  document.getElementById('ev-nome').value = ev.nome;
-  document.getElementById('ev-data').value = ev.data || '';
-  document.getElementById('ev-convidados').value = ev.convidados;
-  document.getElementById('ev-horas').value = ev.horas;
-  document.getElementById('ev-doses-por-pessoa').value = ev.doses_por_pessoa;
-  document.getElementById('ev-preco-pacote-pessoa').value = ev.preco_pacote_pessoa;
+function fecharEventoEditorComCheck() {
+  const sujo = JSON.stringify(state.eventoDraft) !== JSON.stringify(state.eventoDraftSalvo);
+  if (sujo && !confirm('Você tem alterações não salvas. Sair mesmo assim?')) return;
+  closeEventoEditor();
+  refreshAll();
+}
+function renderEventoEditorCampos() {
+  const d = state.eventoDraft;
+  if (!d) return;
+  document.getElementById('ev-nome').value = d.nome;
+  document.getElementById('ev-data').value = d.data || '';
+  document.getElementById('ev-convidados').value = d.convidados;
+  document.getElementById('ev-horas').value = d.horas;
+  document.getElementById('ev-doses-por-pessoa').value = d.doses_por_pessoa;
+  document.getElementById('ev-preco-pacote-pessoa').value = d.preco_pacote_pessoa;
 
   const todasReceitas = getReceitas();
-  const selecionadasIds = new Set(ev.receitas.map((r) => r.id));
+  const selecionadasIds = new Set(d.receitaIds);
   const checklist = document.getElementById('ev-receitas-checklist');
   checklist.innerHTML = todasReceitas.map((r) => `
     <label class="checklist-item">
@@ -362,27 +476,38 @@ function renderEventoEditor() {
     el.addEventListener('change', (e) => {
       const receitaId = Number(e.target.dataset.receitaId);
       if (e.target.checked) {
-        addEventoReceita(ev.id, receitaId);
+        if (!state.eventoDraft.receitaIds.includes(receitaId)) state.eventoDraft.receitaIds.push(receitaId);
       } else {
-        const vinculo = ev.receitas.find((r) => r.id === receitaId);
-        if (vinculo) removeEventoReceita(vinculo.vinculo_id);
+        state.eventoDraft.receitaIds = state.eventoDraft.receitaIds.filter((rid) => rid !== receitaId);
       }
-      refreshAll();
+      renderEventoEditorComputados();
     });
   });
 
-  const custosSelecionados = ev.receitas.map((r) => r.custo);
-  const custoPorPessoa = calcCustoEventoPessoa(custosSelecionados, ev.doses_por_pessoa);
-  const { cmv, markup, margem } = calcIndicadores(custoPorPessoa, ev.preco_pacote_pessoa);
+  renderEventoEditorComputados();
+}
+function renderEventoEditorComputados() {
+  const d = state.eventoDraft;
+  if (!d) return;
+  const todasReceitas = getReceitas();
+  const receitasSelecionadas = todasReceitas.filter((r) => d.receitaIds.includes(r.id));
+  const custosSelecionados = receitasSelecionadas.map((r) => r.custo);
+  const custoPorPessoa = calcCustoEventoPessoa(custosSelecionados, d.doses_por_pessoa);
+  const { cmv, markup, margem } = calcIndicadores(custoPorPessoa, d.preco_pacote_pessoa);
 
-  document.getElementById('ev-custo-pessoa').textContent = ev.receitas.length
+  document.getElementById('ev-custo-pessoa').textContent = receitasSelecionadas.length
     ? fmtMoeda(custoPorPessoa)
     : 'Selecione ao menos 1 drink';
   const cmvEl = document.getElementById('ev-cmv');
-  cmvEl.textContent = fmtPct(cmv);
+  cmvEl.textContent = cmvIcon(cmv) + fmtPct(cmv);
   cmvEl.className = 'badge ' + cmvClass(cmv);
   document.getElementById('ev-markup').textContent = markup ? markup.toFixed(2) + 'x' : '-';
   document.getElementById('ev-margem').textContent = fmtMoeda(margem);
+
+  const totais = calcTotaisEvento(custoPorPessoa, d.preco_pacote_pessoa, d.convidados);
+  document.getElementById('ev-custo-total').textContent = fmtMoeda(totais.custoTotal);
+  document.getElementById('ev-receita-total').textContent = fmtMoeda(totais.receitaTotal);
+  document.getElementById('ev-lucro-total').textContent = fmtMoeda(totais.lucroTotal);
 }
 
 // Avisa quando o insumo selecionado para adicionar a uma receita/producao ainda

@@ -329,9 +329,34 @@ function calcPrecoSugerido(custo, markupAlvo) {
 function calcCustoDraftItens(itens) {
   return itens.reduce((sum, it) => sum + it.quantidade * it.preco_unitario, 0);
 }
+// Mesma formula de recalcInsumoUnitario, mas pura - usada pelo rascunho da
+// producao interna pra mostrar o custo unitario antes de salvar no banco.
+function calcCustoUnitario(custoTotal, tamanhoUnidade, fatorCorrecao) {
+  const tamanho = tamanhoUnidade > 0 ? tamanhoUnidade : 1;
+  const fator = fatorCorrecao > 0 ? fatorCorrecao : 1;
+  return (custoTotal / tamanho) * fator;
+}
+
+// ---------- Eventos: totais pro numero de convidados ----------
+function calcTotaisEvento(custoPorPessoa, precoPacotePessoa, convidados) {
+  const custoTotal = custoPorPessoa * convidados;
+  const receitaTotal = precoPacotePessoa * convidados;
+  return { custoTotal, receitaTotal, lucroTotal: receitaTotal - custoTotal };
+}
+
+// ---------- Badge de CMV: status nao pode depender so de cor (daltonismo) ----------
+function cmvIcon(cmv) {
+  if (cmv === null) return '';
+  if (cmv <= 25) return '✓ ';
+  if (cmv <= 35) return '! ';
+  return '✕ ';
+}
 
 // Exporta as funcoes puras pro test runner (Node). No browser `module` nao
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
-  module.exports = { calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido, calcCustoDraftItens };
+  module.exports = {
+    calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
+    calcPrecoSugerido, calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+  };
 }

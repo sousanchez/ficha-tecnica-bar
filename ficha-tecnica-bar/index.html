@@ -7,21 +7,23 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>🍸 Ficha Técnica de Bar</h1>
-    <div class="header-actions">
-      <button id="btn-export-db" class="btn secondary">Exportar banco (.db)</button>
-      <button id="btn-import-db" class="btn secondary">Importar banco (.db)</button>
-      <input type="file" id="input-import-db" accept=".db" hidden>
-    </div>
-  </header>
+  <div class="app-topbar">
+    <header class="app-header">
+      <h1>🍸 Ficha Técnica de Bar</h1>
+      <div class="header-actions">
+        <button id="btn-export-db" class="btn secondary">Exportar banco (.db)</button>
+        <button id="btn-import-db" class="btn secondary">Importar banco (.db)</button>
+        <input type="file" id="input-import-db" accept=".db" hidden>
+      </div>
+    </header>
 
-  <nav class="tabs">
-    <button class="tab-btn active" data-tab="insumos">Insumos</button>
-    <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
-    <button class="tab-btn" data-tab="dashboard">Dashboard</button>
-    <button class="tab-btn" data-tab="eventos">Eventos</button>
-  </nav>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="insumos">Insumos</button>
+      <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
+      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="eventos">Eventos</button>
+    </nav>
+  </div>
 
   <main>
     <section id="tab-insumos" class="tab-panel active">
@@ -85,7 +87,7 @@
         </table>
       </div>
 
-      <h3>Engenharia de cardápio</h3>
+      <h2>Engenharia de cardápio</h2>
       <div id="menu-engineering"></div>
     </section>
 
@@ -121,11 +123,19 @@
           Preço sugerido: <strong id="re-preco-sugerido">R$ 0,00</strong>
           <button id="btn-aplicar-preco-sugerido" class="btn secondary">Aplicar</button>
         </div>
+
+        <div class="indicadores indicadores-sticky">
+          <div class="indicador"><span>Custo total</span><strong id="re-custo">R$ 0,00</strong></div>
+          <div class="indicador"><span>CMV</span><strong id="re-cmv" class="badge">-</strong></div>
+          <div class="indicador"><span>Markup</span><strong id="re-markup">-</strong></div>
+          <div class="indicador"><span>Margem</span><strong id="re-margem">R$ 0,00</strong></div>
+        </div>
+
         <label class="full">Modo de preparo
           <textarea id="re-modo-preparo" rows="3" placeholder="Descreva o preparo..."></textarea>
         </label>
 
-        <h3>Insumos da receita</h3>
+        <h2>Insumos da receita</h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -140,19 +150,12 @@
           <span id="re-add-unidade" class="unidade-aviso"></span>
           <button id="btn-add-item" class="btn">Adicionar</button>
         </div>
-
-        <div class="indicadores">
-          <div class="indicador"><span>Custo total</span><strong id="re-custo">R$ 0,00</strong></div>
-          <div class="indicador"><span>CMV</span><strong id="re-cmv" class="badge">-</strong></div>
-          <div class="indicador"><span>Markup</span><strong id="re-markup">-</strong></div>
-          <div class="indicador"><span>Margem</span><strong id="re-margem">R$ 0,00</strong></div>
-        </div>
       </div>
 
       <div class="modal-footer">
-        <button id="btn-salvar-receita" class="btn">Salvar</button>
-        <button id="btn-print-receita" class="btn secondary">Imprimir ficha técnica</button>
         <button id="btn-delete-receita" class="btn danger">Excluir ficha técnica</button>
+        <button id="btn-print-receita" class="btn secondary">Imprimir ficha técnica</button>
+        <button id="btn-salvar-receita" class="btn">Salvar</button>
       </div>
     </div>
   </div>
@@ -180,7 +183,7 @@
           <label>Fator de correção <input id="pr-fator" type="number" step="0.01" placeholder="1 = sem perda"></label>
         </div>
 
-        <h3>Ingredientes da produção</h3>
+        <h2>Ingredientes da produção</h2>
         <div class="table-wrap">
           <table>
             <thead>
@@ -204,6 +207,7 @@
 
       <div class="modal-footer">
         <button id="btn-delete-producao" class="btn danger">Excluir produção interna</button>
+        <button id="btn-salvar-producao" class="btn">Salvar</button>
       </div>
     </div>
   </div>
@@ -224,8 +228,9 @@
           <label>Preço do pacote por pessoa <input id="ev-preco-pacote-pessoa" type="number" step="0.01"></label>
         </div>
 
-        <h3>Drinks do pacote</h3>
+        <h2>Drinks do pacote</h2>
         <div id="ev-receitas-checklist" class="checklist"></div>
+        <p class="muted aviso-media">Custo/pessoa assume consumo igual entre os drinks selecionados (média simples).</p>
 
         <div class="indicadores">
           <div class="indicador"><span>Custo/pessoa</span><strong id="ev-custo-pessoa">R$ 0,00</strong></div>
@@ -233,10 +238,16 @@
           <div class="indicador"><span>Markup</span><strong id="ev-markup">-</strong></div>
           <div class="indicador"><span>Margem/pessoa</span><strong id="ev-margem">R$ 0,00</strong></div>
         </div>
+        <div class="indicadores">
+          <div class="indicador"><span>Custo total (convidados)</span><strong id="ev-custo-total">R$ 0,00</strong></div>
+          <div class="indicador"><span>Receita total (convidados)</span><strong id="ev-receita-total">R$ 0,00</strong></div>
+          <div class="indicador"><span>Lucro total (convidados)</span><strong id="ev-lucro-total">R$ 0,00</strong></div>
+        </div>
       </div>
 
       <div class="modal-footer">
         <button id="btn-delete-evento" class="btn danger">Excluir evento</button>
+        <button id="btn-salvar-evento" class="btn">Salvar</button>
       </div>
     </div>
   </div>

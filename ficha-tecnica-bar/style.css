@@ -30,6 +30,12 @@ body {
   color: var(--text);
 }
 
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -66,6 +72,14 @@ body {
 main { padding: 20px 24px 60px; max-width: 1200px; margin: 0 auto; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
+/* Insumos tem a tabela mais larga do app (12 colunas); sai do limite de 1200px
+   pra nao cortar colunas em monitores grandes. */
+#tab-insumos.tab-panel.active {
+  max-width: none;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 0 24px;
+}
 
 .toolbar {
   display: flex;
@@ -107,6 +121,18 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent-2); 
   font-size: 14px;
   padding: 4px 8px;
 }
+/* Em telas densas (a grade de Insumos tem 224+ linhas) um alvo de 44px por
+   botao estufaria a tabela inteira - so aumenta a area de toque quando o
+   ponteiro e realmente touch (coarse), sem penalizar o uso com mouse. */
+@media (pointer: coarse) {
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
 .icon-btn:hover { color: var(--bad); }
 
 .muted { color: var(--muted); font-size: 13px; }
@@ -116,6 +142,13 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent-2); 
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
+}
+/* So a grade de Insumos (224+ linhas) precisa de scroll vertical proprio -
+   sem isso o "th { position: sticky }" abaixo nunca tem um ancestral que
+   role verticalmente, entao o cabecalho da coluna some ao rolar a pagina. */
+#tab-insumos .table-wrap {
+  max-height: calc(100vh - 190px);
+  overflow-y: auto;
 }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -185,6 +218,9 @@ td input.input-nome { min-width: 260px; }
 }
 .modal-body { padding: 16px 20px; }
 .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+/* Acao destrutiva fica isolada na ponta esquerda; Salvar (primaria) sempre
+   na ponta direita, onde a convencao do app espera encontra-la. */
+.modal-footer .btn.danger { margin-right: auto; }
 
 .form-grid {
   display: grid;
@@ -196,7 +232,7 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color:
 label.full { display: flex; margin-bottom: 16px; }
 label input, label textarea, label select { margin-top: 2px; }
 
-h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
 
 .add-item-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
 .add-item-row select { flex: 1; }
@@ -220,7 +256,19 @@ h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
   gap: 4px;
 }
 .indicador span { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-.indicador strong { font-size: 16px; }
+.indicador strong { font-size: 19px; font-weight: 700; }
+
+/* No editor de receita, fica logo abaixo do preco/markup que os define, e
+   gruda no topo do modal ao rolar - senao o numero que a tela existe pra
+   mostrar (CMV) some assim que voce rola ate os insumos. */
+.indicadores-sticky {
+  position: sticky;
+  top: 57px; /* logo abaixo do .modal-header, que tambem e sticky top:0 */
+  z-index: 5;
+  background: var(--panel);
+  padding-top: 4px;
+  margin-top: 0;
+}
 
 .me-grid {
   display: grid;
@@ -235,7 +283,7 @@ h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
   border-radius: 8px;
   padding: 14px;
 }
-.me-quad h4 { margin: 0 0 10px; font-size: 13px; color: var(--text); }
+.me-quad h3 { margin: 0 0 10px; font-size: 13px; color: var(--text); font-weight: 600; }
 .me-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
 .me-item:last-child { border-bottom: none; }
 .me-estrela { border-left-color: var(--good); }
@@ -276,3 +324,17 @@ h3 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
   color: var(--muted);
 }
 .sugestao-preco strong { color: var(--text); }
+
+/* Breakpoint unico (o app era 100% desktop-only ate aqui) - empilha o
+   essencial em telas estreitas sem reestruturar a navegacao. A grade de
+   Insumos continua rolando na horizontal dentro de .table-wrap por ser uma
+   tabela de dados densa (12 colunas); isso e aceitavel em telas pequenas. */
+@media (max-width: 768px) {
+  .app-header { flex-direction: column; align-items: stretch; gap: 10px; }
+  .header-actions { justify-content: flex-end; flex-wrap: wrap; }
+  main, #tab-insumos.tab-panel.active { padding-left: 12px; padding-right: 12px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .indicadores { grid-template-columns: repeat(2, 1fr); }
+  .modal-overlay { padding: 0; }
+  .modal { max-width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
+}

@@ -120,8 +120,12 @@ function seedInsumos() {
 }
 
 function persist() {
-  const bytes = db.export();
-  localStorage.setItem(LS_KEY, bytesToBase64(bytes));
+  try {
+    const bytes = db.export();
+    localStorage.setItem(LS_KEY, bytesToBase64(bytes));
+  } catch (err) {
+    alert('Não foi possível salvar as alterações no navegador (armazenamento cheio ou indisponível). Exporte o banco (.db) agora para não perder o trabalho.');
+  }
 }
 
 function bytesToBase64(bytes) {
@@ -179,13 +183,23 @@ function exportDb() {
 function importDb(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const bytes = new Uint8Array(reader.result);
-    db = new SQL.Database(bytes);
-    db.run(SCHEMA_SQL);
-    migrateSchema();
-    persist();
-    renderAll();
-    alert('Banco de dados importado com sucesso.');
+    const dbAnterior = db;
+    try {
+      const bytes = new Uint8Array(reader.result);
+      const novoDb = new SQL.Database(bytes);
+      novoDb.run(SCHEMA_SQL); // lanca erro se o arquivo nao for um banco SQLite valido
+      db = novoDb;
+      migrateSchema();
+      persist();
+      renderAll();
+      alert('Banco de dados importado com sucesso.');
+    } catch (err) {
+      db = dbAnterior;
+      alert(`Não foi possível importar "${file.name}": o arquivo não parece ser um banco de dados válido.\n\nSeus dados atuais não foram alterados.`);
+    }
+  };
+  reader.onerror = () => {
+    alert(`Não foi possível ler o arquivo "${file.name}".`);
   };
   reader.readAsArrayBuffer(file);
 }
