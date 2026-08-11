@@ -103,7 +103,88 @@ function migrateSchema() {
   db.run('UPDATE insumos SET fator_correcao = 1 WHERE fator_correcao IS NULL');
   db.run('UPDATE insumos SET estoque_minimo = 0 WHERE estoque_minimo IS NULL');
   db.run('UPDATE insumos SET estoque_atual = 0 WHERE estoque_atual IS NULL');
+  seedProducaoPropria();
   persist();
+}
+
+// Converte insumos "revisar" (comprado, preco 0) que na verdade sao
+// producoes proprias da casa em producao_interna de verdade, com
+// sub-receita. So converte o que ja existir pelo nome - se o banco nao
+// passou pela populacao das fichas do Florest, e um no-op silencioso.
+// Idempotente: cada parte checa o estado atual antes de agir, entao rodar
+// de novo em um banco ja migrado nao duplica nada.
+function seedProducaoPropria() {
+  const buscarOuCriarInsumo = (nome, categoria, unidade_compra, tamanho_unidade, preco_compra) => {
+    const existente = query('SELECT id FROM insumos WHERE nome = ?', [nome])[0];
+    if (existente) return existente.id;
+    const id = runInsert(`INSERT INTO insumos
+      (nome, categoria, casa, fornecedor, unidade_compra, tamanho_unidade, preco_compra, preco_unitario, data_atualizacao, tipo, fator_correcao, estoque_minimo, estoque_atual)
+      VALUES (?, ?, '', '', ?, ?, ?, 0, '', 'comprado', 1, 0, 0)`,
+      [nome, categoria, unidade_compra, tamanho_unidade, preco_compra]);
+    recalcInsumoUnitario(id);
+    return id;
+  };
+
+  // Insumos ja existentes cadastrados como "unidade" (pacote inteiro) mas
+  // que sao vendidos por peso - preco ja bate com pacote de 1kg, entao so
+  // ajusta a base de calculo, preco fica igual.
+  const corrigirUnidade = (nome, unidade, tamanho) => {
+    const row = query('SELECT id, unidade_compra FROM insumos WHERE nome = ?', [nome])[0];
+    if (!row || row.unidade_compra === unidade) return;
+    updateInsumoField(row.id, 'unidade_compra', unidade);
+    updateInsumoField(row.id, 'tamanho_unidade', tamanho);
+  };
+  corrigirUnidade('ACUCAR REFINADO', 'g', 1000);
+  corrigirUnidade('SAL REFINADO', 'g', 1000);
+
+  const idAcidoCitrico = buscarOuCriarInsumo('ACIDO CITRICO', 'Xarope/Bitter', 'g', 1000, 30.90);
+  const idAcidoMalico = buscarOuCriarInsumo('ACIDO MALICO', 'Xarope/Bitter', 'g', 1000, 45.00);
+  const idVinagreMaca = buscarOuCriarInsumo('VINAGRE DE MACA', 'Outros', 'ml', 1000, 19.98);
+  const idChaDoAmor = buscarOuCriarInsumo('CHA DO AMOR (TALCHA)', 'Produção interna', 'g', 50, 79.00);
+  const idSucoTangerina = buscarOuCriarInsumo('SUCO DE TANGERINA', 'Suco', 'ml', 1000, 0);
+
+  // Converte um insumo "comprado" em producao_interna e grava os
+  // ingredientes - so age se o insumo existir e ainda estiver como
+  // "comprado" (depois de convertido, tipo muda e essa checagem falha
+  // sozinha nas proximas execucoes).
+  const converterEmProducao = (nome, tamanhoLote, unidadeLote, itens) => {
+    const row = query("SELECT id FROM insumos WHERE nome = ? AND tipo = 'comprado'", [nome])[0];
+    if (!row) return;
+    run("UPDATE insumos SET tipo = 'producao_interna', unidade_compra = ?, tamanho_unidade = ? WHERE id = ?",
+      [unidadeLote, tamanhoLote, row.id]);
+    for (const [insumoId, quantidade] of itens) {
+      if (!insumoId) continue; // insumo-base nao encontrado - pula esse item em vez de gravar id invalido
+      run('INSERT INTO producao_itens (producao_id, ingrediente_id, quantidade) VALUES (?, ?, ?)', [row.id, insumoId, quantidade]);
+    }
+  };
+
+  const idAcucar = query("SELECT id FROM insumos WHERE nome = 'ACUCAR REFINADO'")[0]?.id;
+  const idAgua = query("SELECT id FROM insumos WHERE nome = 'AGUA FILTRADA'")[0]?.id;
+  const idLimaoTahiti = query("SELECT id FROM insumos WHERE nome = 'LIMAO TAHITI'")[0]?.id;
+  const idSal = query("SELECT id FROM insumos WHERE nome = 'SAL REFINADO'")[0]?.id;
+  const idAbsolut = query("SELECT id FROM insumos WHERE nome = 'ABSOLUT 1L'")[0]?.id;
+
+  if (idAcucar && idAgua) {
+    converterEmProducao('XAROPE DE ACUCAR (SIMPLES)', 2000, 'ml', [[idAcucar, 1000], [idAgua, 1000]]);
+  }
+  if (idAgua && idLimaoTahiti && idAcucar && idSal) {
+    converterEmProducao('SUPER SUCO', 10000, 'ml', [
+      [idAgua, 10000], [idLimaoTahiti, 600], [idAcucar, 600], [idAcidoCitrico, 480], [idAcidoMalico, 240], [idSal, 20],
+    ]);
+  }
+  const idXaropeAcucar = query("SELECT id FROM insumos WHERE nome = 'XAROPE DE ACUCAR (SIMPLES)'")[0]?.id;
+  if (idSucoTangerina && idVinagreMaca && idXaropeAcucar) {
+    converterEmProducao('SHRUB DE TANGERINA CLEMENTINA', 870, 'ml', [
+      [idSucoTangerina, 600], [idVinagreMaca, 70], [idXaropeAcucar, 200],
+    ]);
+  }
+  if (idAbsolut && idChaDoAmor) {
+    converterEmProducao('VODKA COM CHA DO AMOR (TALCHA)', 1000, 'ml', [
+      [idAbsolut, 1000], [idChaDoAmor, 15],
+    ]);
+  }
+
+  recalcAllProducoesInternas();
 }
 
 function seedInsumos() {
