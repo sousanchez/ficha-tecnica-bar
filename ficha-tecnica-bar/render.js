@@ -11,6 +11,7 @@ function refreshAll() {
   renderReceitas();
   renderDashboard();
   renderEventos();
+  renderProducoes();
   if (state.editingReceitaId) renderReceitaEditorCampos();
   if (state.editingProducaoId) renderProducaoEditorCampos();
   if (state.editingEventoId) renderEventoEditorCampos();
@@ -37,7 +38,7 @@ function unidadeOptionsHtml(valorAtual) {
 }
 
 function renderInsumos() {
-  const rows = getInsumos();
+  const rows = getInsumos().filter((r) => r.tipo !== 'producao_interna');
   const tbody = document.getElementById('insumos-tbody');
 
   // O rebuild abaixo recria todos os inputs da tabela, entao o elemento focado
@@ -199,6 +200,19 @@ function renderEventos() {
       </div>
     `;
   }).join('') || '<p class="muted">Nenhum evento cadastrado ainda.</p>';
+}
+
+function renderProducoes() {
+  const rows = query("SELECT * FROM insumos WHERE tipo = 'producao_interna' ORDER BY nome");
+  const list = document.getElementById('producoes-list');
+  list.innerHTML = rows.map((r) => `
+    <div class="receita-card" onclick="openProducaoEditor(${r.id})">
+      <div class="receita-card-title">${escapeHtml(r.nome)}</div>
+      <div class="receita-card-row"><span>Custo do lote</span><strong>${fmtMoeda(r.preco_compra)}</strong></div>
+      <div class="receita-card-row"><span>Custo unitário</span><strong>${fmtMoeda(r.preco_unitario)} / ${r.unidade_compra}</strong></div>
+      <div class="receita-card-row"><span>Categoria</span><strong>${escapeHtml(r.categoria || '-')}</strong></div>
+    </div>
+  `).join('') || '<p class="muted">Nenhuma produção interna cadastrada ainda.</p>';
 }
 
 // Renderiza a tabela de itens (insumo/quantidade/unidade/custo) usada tanto pelo

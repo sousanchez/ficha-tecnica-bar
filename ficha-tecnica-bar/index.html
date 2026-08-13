@@ -22,6 +22,7 @@
       <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
       <button class="tab-btn" data-tab="dashboard">Dashboard</button>
       <button class="tab-btn" data-tab="eventos">Eventos</button>
+      <button class="tab-btn" data-tab="producoes">Produções</button>
     </nav>
   </div>
 
@@ -31,7 +32,6 @@
         <input id="filtro-nome" type="text" placeholder="Buscar insumo...">
         <span id="insumos-count" class="muted"></span>
         <button id="btn-detect-volumes" class="btn secondary" title="Detecta ml/g no nome dos insumos que ainda estao como 'unidade'">🔍 Detectar volumes</button>
-        <button id="btn-add-producao" class="btn secondary">+ Nova produção interna</button>
         <button id="btn-add-insumo" class="btn">+ Novo insumo</button>
       </div>
       <div class="table-wrap">
@@ -97,6 +97,14 @@
         <button id="btn-add-evento" class="btn">+ Novo evento</button>
       </div>
       <div id="eventos-list" class="receitas-grid"></div>
+    </section>
+
+    <section id="tab-producoes" class="tab-panel">
+      <div class="toolbar">
+        <span class="muted">Xaropes, infusões e preparos feitos na casa</span>
+        <button id="btn-add-producao" class="btn">+ Nova produção interna</button>
+      </div>
+      <div id="producoes-list" class="receitas-grid"></div>
     </section>
   </main>
 
