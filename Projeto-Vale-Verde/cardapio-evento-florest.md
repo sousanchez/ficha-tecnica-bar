@@ -45,24 +45,20 @@ Jack Daniel's (whisky americano) 30ml · Alexandrion 7 (brandy) 30ml · Licor de
 - **Spritz Veneziano** — *Cítrico • Efervescente • Amargo* (substitui Aperol Spritz + Limoncello Spritz) — Aperol **ou** Campari **ou** Limoncello (escolha do convidado) 60ml · Espumante 90ml · Água com gás 30ml. Batch: base 18,0L (dividir entre as 3 opções por demanda estimada) · espumante 27,0L · água com gás 9,0L.
 - **Mango Passion** — *Frutado • Cremoso • Refrescante*. Padrão já servido nas outras casas do grupo, não exclusivo do Florest. Vodka 30ml · Purê de manga 30ml · Super Suco 15ml · Xarope de açúcar 15ml · espuma de gengibre (25ml, topo) · bailarina de polpa de maracujá (8ml, guarnição). Batch: base 27,0L (vodka 9,0L · manga 9,0L · Super Suco 4,5L · xarope 4,5L) + espuma (xarope gengibre 4,5L · albumina 3,0L) + maracujá 2,4L.
 - **Negroni** — *Herbal • Intenso • Amargo* — Gin 30ml · Campari 30ml · Vermute rosso 30ml, partes iguais, mexido. Batch: 27,0L (9,0L cada).
-- **Fitzgerald** — *Cítrico • Aromático • Balanceado* — Gin · Limão · Açúcar · Bitter aromático.
-- **Gin Tônica** — *Seco • Refrescante • Botânico* — Gin · Limão · Tônica.
-
-_Ficha técnica (batch/ml) de Fitzgerald e Gin Tônica ainda pendente._
+- **Fitzgerald** — *Cítrico • Aromático • Balanceado* — Gin (neutro) 45ml · Super Suco 25ml · Xarope de açúcar 30ml · Nib Bitter 3 dashes. Batido, coado, taça gelada. Batch: 30,0L (Gin 13,5L · Super Suco 7,5L · xarope de açúcar 9,0L; Nib Bitter em dashes, não entra no volume).
+- **Gin Tônica** — *Seco • Refrescante • Botânico* — Gin (neutro) 60ml · 1 gomo de limão tahiti · 1 zest de limão siciliano · água tônica (~120ml/dose, completar). Build na taça com gelo, gomo de tahiti + zest de siciliano. Batch: ~54,0L (Gin 18,0L · água tônica 36,0L; ~50 limões tahiti em gomos · limão siciliano para zest).
 
 **Removidos do cardápio:** Vesper Martini, Corpse Reviver #2 e Moscow Mule. Lillet Blanc não é mais necessário fora do Clareira.
 
 ## Lista de compras consolidada (300 convidados)
 
-_Fitzgerald e Gin Tônica ainda não entram nos totais abaixo — ficha técnica (batch/ml) pendente._
+**Destilados-base:** Vodka 15,3L (Clareira 6,3L + Mango Passion 9,0L) · Draco Neroli Gin 13,5L (Jardim) · Nib Gin (pera) 13,5L (Refúgio) · Gin (neutro) 40,5L (Negroni 9,0L + Fitzgerald 13,5L + Gin Tônica 18,0L) · Jack Daniel's Apple 9,0L (Pomar) · Jack Daniel's regular 9,0L (Encanto) · Scotch 4,5L (Pomar) · Alexandrion 7 9,0L (Encanto)
 
-**Destilados-base:** Vodka 15,3L (Clareira 6,3L + Mango Passion 9,0L) · Draco Neroli Gin 13,5L (Jardim) · Nib Gin (pera) 13,5L (Refúgio) · Gin neutro 9,0L (Negroni) · Jack Daniel's Apple 9,0L (Pomar) · Jack Daniel's regular 9,0L (Encanto) · Scotch 4,5L (Pomar) · Alexandrion 7 9,0L (Encanto)
+**Aperitivos/licores:** Martini Bianco 4,2L (Clareira) · Campari 9,0L (Negroni) · Vermute rosso 9,0L (Negroni) · Aperol/Campari/Limoncello 18,0L (Spritz Veneziano, dividir por demanda) · Licor de café Schluck 2,25L (Encanto) · Licor 43 2,25L (Encanto) · Espumante (com álcool) 27,0L (Spritz Veneziano) · Água tônica 36,0L (Gin Tônica)
 
-**Aperitivos/licores:** Martini Bianco 4,2L (Clareira) · Campari 9,0L (Negroni) · Vermute rosso 9,0L (Negroni) · Aperol/Campari/Limoncello 18,0L (Spritz Veneziano, dividir por demanda) · Licor de café Schluck 2,25L (Encanto) · Licor 43 2,25L (Encanto) · Espumante (com álcool) 27,0L (Spritz Veneziano)
+**Frutas/infusões/xaropes:** Chá do Amor (TalChá) · Purê de pêssego Fabbri 4,2L (Clareira) · Tangerina/clementina (shrub) 2,1L (Clareira) · Suco de limão (fresco) 2,1L (Clareira) · Limão tahiti ~50 (gomos, Gin Tônica) · Limão siciliano (zest, Gin Tônica) · Capim santo (concentrado) — dose a definir (Jardim) · Xarope de açúcar/simples 34,5L (Jardim 7,5L · Pomar 4,5L · Refúgio 9,0L · Mango Passion 4,5L · Fitzgerald 9,0L) · Manga (purê) 9,0L (Mango Passion) · Maracujá (polpa) 2,4L (Mango Passion) · Gengibre (xarope) 4,5L (Mango Passion) · Hortelã ~2.100 folhas (Jardim) · Água com gás 12,0L (Jardim 3,0L + Spritz Veneziano 9,0L) · Solução salina (Jardim)
 
-**Frutas/infusões/xaropes:** Chá do Amor (TalChá) · Purê de pêssego Fabbri 4,2L (Clareira) · Tangerina/clementina (shrub) 2,1L (Clareira) · Suco de limão (fresco) 2,1L (Clareira) · Capim santo (concentrado) — dose a definir (Jardim) · Xarope de açúcar/simples 25,5L (Jardim 7,5L · Pomar 4,5L · Refúgio 9,0L · Mango Passion 4,5L) · Manga (purê) 9,0L (Mango Passion) · Maracujá (polpa) 2,4L (Mango Passion) · Gengibre (xarope) 4,5L (Mango Passion) · Hortelã ~2.100 folhas (Jardim) · Água com gás 12,0L (Jardim 3,0L + Spritz Veneziano 9,0L) · Solução salina (Jardim)
-
-**Técnicos:** Super Suco (ácido cítrico+málico) · Albumina em pó 12,0L reidratada (Pomar 9,0L + Mango Passion 3,0L) · Bitter de laranja (Pomar) · Bitter de chocolate (Encanto) · Nib bitter (Refúgio) · Sistema Presshh (Clareira) · Gelo grande 50×65mm (Refúgio, Encanto)
+**Técnicos:** Super Suco (ácido cítrico+málico) — usado em Jardim, Pomar, Refúgio, Mango Passion, Fitzgerald · Albumina em pó 12,0L reidratada (Pomar 9,0L + Mango Passion 3,0L) · Bitter de laranja (Pomar) · Bitter de chocolate (Encanto) · Nib bitter (Refúgio, Fitzgerald) · Sistema Presshh (Clareira) · Gelo grande 50×65mm (Refúgio, Encanto)
 
 **Removido de vez:** Xarope de camomila-mel (Jardim mudou de receita) · Lillet Blanc (fora do Clareira) · tudo que era exclusivo do Moscow Mule
 
@@ -73,7 +69,6 @@ _Fitzgerald e Gin Tônica ainda não entram nos totais abaixo — ficha técnica
 - Proporção final da infusão de chá preto (Clareira) — calibrar por prova
 - Split de compra entre Aperol/Campari/Limoncello no Spritz Veneziano — estimar por demanda antes de fechar pedido
 - Dose do concentrado de capim santo na Jardim — calibrar por prova
-- Fichas técnicas/batch de Fitzgerald e Gin Tônica — pendentes
 
 ## Ver também
 
