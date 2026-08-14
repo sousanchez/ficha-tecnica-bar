@@ -30,7 +30,7 @@ Draco Neroli Gin (gin de flor de laranjeira) 45ml · Concentrado de capim santo 
 
 ### Pomar — Sour (Whisky Sour de maçã verde)
 *Frutado • Aveludado • Encorpado*
-Jack Daniel's Apple 30ml · Scotch 15ml · Super Suco 15ml · Albumina (reidratada) 30ml · Xarope de açúcar 15ml · Bitter de laranja 2 dashes. Rocks baixo. **Batch: 31,5 L** (JD Apple 9,0L · Scotch 4,5L · Super Suco 4,5L · albumina reidratada 9,0L · xarope 4,5L).
+Jack Daniel's Apple 30ml · Scotch 15ml · Super Suco 15ml · Clara de ovo pasteurizada 30ml · Xarope de açúcar 15ml · Bitter de laranja 2 dashes. Rocks baixo. **Batch: 31,5 L** (JD Apple 9,0L · Scotch 4,5L · Super Suco 4,5L · clara de ovo pasteurizada 9,0L · xarope 4,5L).
 
 ### Refúgio — Lower (Fitzgerald de pera)
 *Aromático • Leve • Balanceado*
@@ -43,7 +43,7 @@ Jack Daniel's (whisky americano) 30ml · Alexandrion 7 (brandy) 30ml · Licor de
 ## Clássicos do Vale Verde
 
 - **Spritz Veneziano** — *Cítrico • Efervescente • Amargo* (substitui Aperol Spritz + Limoncello Spritz) — Aperol **ou** Campari **ou** Limoncello (escolha do convidado) 60ml · Espumante 90ml · Água com gás 30ml. Batch: base 18,0L (dividir entre as 3 opções por demanda estimada) · espumante 27,0L · água com gás 9,0L.
-- **Mango Passion** — *Frutado • Cremoso • Refrescante*. Padrão já servido nas outras casas do grupo, não exclusivo do Florest. Vodka 30ml · Purê de manga 30ml · Super Suco 15ml · Xarope de açúcar 15ml · espuma de gengibre (25ml, topo) · bailarina de polpa de maracujá (8ml, guarnição). Batch: base 27,0L (vodka 9,0L · manga 9,0L · Super Suco 4,5L · xarope 4,5L) + espuma (xarope gengibre 4,5L · albumina 3,0L) + maracujá 2,4L.
+- **Mango Passion** — *Frutado • Cremoso • Refrescante*. Padrão já servido nas outras casas do grupo, não exclusivo do Florest. Vodka 30ml · Purê de manga 30ml · Super Suco 15ml · Xarope de açúcar 15ml · espuma de gengibre (25ml, topo) · bailarina de polpa de maracujá (8ml, guarnição). Batch: base 27,0L (vodka 9,0L · manga 9,0L · Super Suco 4,5L · xarope 4,5L) + espuma (xarope gengibre 4,5L · clara de ovo pasteurizada 3,0L) + maracujá 2,4L.
 - **Negroni** — *Herbal • Intenso • Amargo* — Gin 30ml · Campari 30ml · Vermute rosso 30ml, partes iguais, mexido. Batch: 27,0L (9,0L cada).
 - **Fitzgerald** — *Cítrico • Aromático • Balanceado* — Gin (neutro) 45ml · Super Suco 25ml · Xarope de açúcar 30ml · Nib Bitter 3 dashes. Batido, coado, taça gelada. Batch: 30,0L (Gin 13,5L · Super Suco 7,5L · xarope de açúcar 9,0L; Nib Bitter em dashes, não entra no volume).
 - **Gin Tônica** — *Seco • Refrescante • Botânico* — Gin (neutro) 60ml · 1 gomo de limão tahiti · 1 zest de limão siciliano · água tônica (~120ml/dose, completar). Build na taça com gelo, gomo de tahiti + zest de siciliano. Batch: ~54,0L (Gin 18,0L · água tônica 36,0L; ~50 limões tahiti em gomos · limão siciliano para zest).
@@ -58,11 +58,11 @@ Jack Daniel's (whisky americano) 30ml · Alexandrion 7 (brandy) 30ml · Licor de
 
 **Frutas/infusões/xaropes:** Chá do Amor (TalChá) · Purê de pêssego Fabbri 4,2L (Clareira) · Tangerina/clementina (shrub) 2,1L (Clareira) · Suco de limão (fresco) 2,1L (Clareira) · Limão tahiti ~50 (gomos, Gin Tônica) · Limão siciliano (zest, Gin Tônica) · Capim santo (concentrado) — dose a definir (Jardim) · Xarope de açúcar/simples 34,5L (Jardim 7,5L · Pomar 4,5L · Refúgio 9,0L · Mango Passion 4,5L · Fitzgerald 9,0L) · Manga (purê) 9,0L (Mango Passion) · Maracujá (polpa) 2,4L (Mango Passion) · Gengibre (xarope) 4,5L (Mango Passion) · Hortelã ~2.100 folhas (Jardim) · Água com gás 12,0L (Jardim 3,0L + Spritz Veneziano 9,0L) · Solução salina (Jardim)
 
-**Técnicos:** Super Suco (ácido cítrico+málico) — usado em Jardim, Pomar, Refúgio, Mango Passion, Fitzgerald · Albumina em pó 12,0L reidratada (Pomar 9,0L + Mango Passion 3,0L) · Bitter de laranja (Pomar) · Bitter de chocolate (Encanto) · Nib bitter (Refúgio, Fitzgerald) · Sistema Presshh (Clareira) · Gelo grande 50×65mm (Refúgio, Encanto)
+**Técnicos:** Super Suco (ácido cítrico+málico) — usado em Jardim, Pomar, Refúgio, Mango Passion, Fitzgerald · Clara de ovo pasteurizada 12,0L (Pomar 9,0L + Mango Passion 3,0L) · Bitter de laranja (Pomar) · Bitter de chocolate (Encanto) · Nib bitter (Refúgio, Fitzgerald) · Sistema Presshh (Clareira) · Gelo grande 50×65mm (Refúgio, Encanto)
 
 **Removido de vez:** Xarope de camomila-mel (Jardim mudou de receita) · Lillet Blanc (fora do Clareira) · tudo que era exclusivo do Moscow Mule
 
-**Removidos nesta atualização (300 convidados):** Tom Collins (Nib Gin extra + Fada Azul) · Caipirinha (cachaça + limões) · New York Sour (JD extra + vinho tinto) · Laranja Spritz (Monin laranja + espumante 0% + tônica) · Hugo Zero (xarope sabugueiro + espumante 0% + água com gás extra) · Clareira Zero (chá concentrado + purê + shrub extras + espumante 0%) · Serenata das Flores e Cacau Rosé (chás de fechamento) · clara de ovo (substituída por albumina no Pomar)
+**Removidos nesta atualização (300 convidados):** Tom Collins (Nib Gin extra + Fada Azul) · Caipirinha (cachaça + limões) · New York Sour (JD extra + vinho tinto) · Laranja Spritz (Monin laranja + espumante 0% + tônica) · Hugo Zero (xarope sabugueiro + espumante 0% + água com gás extra) · Clareira Zero (chá concentrado + purê + shrub extras + espumante 0%) · Serenata das Flores e Cacau Rosé (chás de fechamento)
 
 ## Pendências antes da bancada
 
