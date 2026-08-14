@@ -104,6 +104,7 @@ function migrateSchema() {
   db.run('UPDATE insumos SET estoque_minimo = 0 WHERE estoque_minimo IS NULL');
   db.run('UPDATE insumos SET estoque_atual = 0 WHERE estoque_atual IS NULL');
   seedProducaoPropria();
+  seedFichasFlorest();
   persist();
 }
 
@@ -183,6 +184,170 @@ function seedProducaoPropria() {
       [idAbsolut, 1000], [idChaDoAmor, 15],
     ]);
   }
+
+  recalcAllProducoesInternas();
+}
+
+// Cadastra as 10 fichas tecnicas (5 autorais + 5 classicos VV) do cardapio
+// Florest do evento, junto com os insumos comprados que faltam e as
+// sub-receitas de producao interna que elas usam. Idempotente: insumo,
+// producao interna e receita so sao criados se ainda nao existir pelo nome -
+// rodar de novo em um banco ja migrado nao duplica nada.
+function seedFichasFlorest() {
+  // Insumos comprados novos, com preco estimado (marcado 'EST' em
+  // data_atualizacao ate o valor real de compra ser conferido).
+  const buscarOuCriarInsumoEst = (nome, categoria, unidade_compra, tamanho_unidade, preco_compra) => {
+    const existente = query('SELECT id FROM insumos WHERE nome = ?', [nome])[0];
+    if (existente) return existente.id;
+    const id = runInsert(`INSERT INTO insumos
+      (nome, categoria, casa, fornecedor, unidade_compra, tamanho_unidade, preco_compra, preco_unitario, data_atualizacao, tipo, fator_correcao, estoque_minimo, estoque_atual)
+      VALUES (?, ?, '', '', ?, ?, ?, 0, 'EST', 'comprado', 1, 0, 0)`,
+      [nome, categoria, unidade_compra, tamanho_unidade, preco_compra]);
+    recalcInsumoUnitario(id);
+    return id;
+  };
+
+  buscarOuCriarInsumoEst('NIB GIN (PERA)', 'Gin', 'ml', 750, 120.00);
+  buscarOuCriarInsumoEst('DRACO NEROLI GIN', 'Gin', 'ml', 750, 140.00);
+  buscarOuCriarInsumoEst('DRACO LONDON DRY', 'Gin', 'ml', 750, 130.00);
+  buscarOuCriarInsumoEst('JACK DANIEL´S APPLE 1L', 'Whisky', 'ml', 1000, 110.00);
+  buscarOuCriarInsumoEst('SCOTCH WHITE HORSE 1L', 'Whisky', 'ml', 1000, 70.00);
+  buscarOuCriarInsumoEst('ALEXANDRION 7 BRANDY 1L', 'Conhaque/Brandy', 'ml', 1000, 65.00);
+  buscarOuCriarInsumoEst('LICOR DE CAFE SCHLUCK 900ML', 'Licor/Aperitivo', 'ml', 900, 30.00);
+  buscarOuCriarInsumoEst('LICOR 43 700ML', 'Licor/Aperitivo', 'ml', 700, 130.00);
+  buscarOuCriarInsumoEst('MARTINI BIANCO 1L', 'Licor/Aperitivo', 'ml', 1000, 45.00);
+  buscarOuCriarInsumoEst('VERMUTE ROSSO 1L', 'Licor/Aperitivo', 'ml', 1000, 42.00);
+  buscarOuCriarInsumoEst('AGUA TONICA 1,5L', 'Água', 'ml', 1500, 9.00);
+  buscarOuCriarInsumoEst('ESPUMANTE BRUT 750ML', 'Outros', 'ml', 750, 35.00);
+  buscarOuCriarInsumoEst('PURE DE PESSEGO FABBRI', 'Suco', 'g', 1300, 95.00);
+  buscarOuCriarInsumoEst('CLARA DE OVO PASTEURIZADA', 'Outros', 'ml', 1000, 22.00);
+  buscarOuCriarInsumoEst('GENGIBRE', 'Hortifruti', 'g', 1000, 9.00);
+  buscarOuCriarInsumoEst('CAPIM SANTO', 'Hortifruti', 'g', 1000, 20.00);
+  buscarOuCriarInsumoEst('LIMAO SICILIANO', 'Hortifruti', 'unidade', 1, 2.50);
+  buscarOuCriarInsumoEst('HORTELA', 'Hortifruti', 'g', 100, 6.00);
+  buscarOuCriarInsumoEst('AGUA COM GAS 1,5L', 'Água', 'ml', 1500, 4.50);
+  buscarOuCriarInsumoEst('BITTER DE LARANJA', 'Xarope/Bitter', 'ml', 200, 45.00);
+  buscarOuCriarInsumoEst('BITTER DE CHOCOLATE', 'Xarope/Bitter', 'ml', 200, 45.00);
+  buscarOuCriarInsumoEst('SOLUCAO SALINA', 'Outros', 'ml', 200, 5.00);
+  buscarOuCriarInsumoEst('LIMAO TAHITI', 'Hortifruti', 'ml', 1000, 15.00);
+  buscarOuCriarInsumoEst('AGUA FILTRADA', 'Água', 'ml', 1000, 0.00);
+
+  // NIB BITTER ja existia cadastrado como "unidade" (preco real R$69,90 do
+  // pacote) mas e usado em ml nas receitas - so corrige a base de calculo,
+  // preco de compra fica o mesmo.
+  const rowNib = query("SELECT id, unidade_compra FROM insumos WHERE nome = 'NIB BITTER'")[0];
+  if (rowNib && rowNib.unidade_compra !== 'ml') {
+    run("UPDATE insumos SET unidade_compra = 'ml', tamanho_unidade = 100, data_atualizacao = 'EST' WHERE id = ?", [rowNib.id]);
+    recalcInsumoUnitario(rowNib.id);
+  }
+
+  // MARACUJA POLPA ja existia cadastrado como "unidade" (preco 0, revisar) -
+  // na verdade e vendido por peso. So corrige se ainda nao foi corrigido.
+  const rowMaracuja = query("SELECT id, unidade_compra FROM insumos WHERE nome = 'MARACUJA POLPA'")[0];
+  if (rowMaracuja && rowMaracuja.unidade_compra !== 'g') {
+    run("UPDATE insumos SET unidade_compra = 'g', tamanho_unidade = 1000, preco_compra = 18.00, data_atualizacao = 'EST' WHERE id = ?", [rowMaracuja.id]);
+    recalcInsumoUnitario(rowMaracuja.id);
+  }
+
+  const idPorNome = (nome) => query('SELECT id FROM insumos WHERE nome = ?', [nome])[0]?.id;
+
+  // Sub-receitas de producao interna - criadas do zero ja como
+  // producao_interna, sem precisar de um insumo "revisar" previo (diferente
+  // de converterEmProducao, usada em seedProducaoPropria). As 4 primeiras
+  // espelham as sub-receitas da seedProducaoPropria: no banco real elas nao
+  // foram criadas la porque LIMAO TAHITI/AGUA FILTRADA ainda nao existiam
+  // (so passam a existir aqui em cima) - por isso sao recriadas aqui. As
+  // demais (gengibre/capim) sao novas. Quantidades EST a calibrar com o bar.
+  const criarProducaoInterna = (nome, tamanhoLote, unidadeLote, itens) => {
+    if (query('SELECT id FROM insumos WHERE nome = ?', [nome])[0]) return; // ja existe, nao recria
+    const id = runInsert(`INSERT INTO insumos
+      (nome, categoria, casa, fornecedor, unidade_compra, tamanho_unidade, preco_compra, preco_unitario, data_atualizacao, tipo, fator_correcao, estoque_minimo, estoque_atual)
+      VALUES (?, 'Produção interna', '', '', ?, ?, 0, 0, '', 'producao_interna', 1, 0, 0)`,
+      [nome, unidadeLote, tamanhoLote]);
+    for (const [nomeIngrediente, quantidade] of itens) {
+      const ingredienteId = idPorNome(nomeIngrediente);
+      if (!ingredienteId) continue; // insumo-base nao encontrado - pula esse item em vez de gravar id invalido
+      run('INSERT INTO producao_itens (producao_id, ingrediente_id, quantidade) VALUES (?, ?, ?)', [id, ingredienteId, quantidade]);
+    }
+  };
+
+  criarProducaoInterna('XAROPE DE ACUCAR (SIMPLES)', 2000, 'ml', [
+    ['ACUCAR REFINADO', 1000], ['AGUA FILTRADA', 1000],
+  ]);
+  criarProducaoInterna('SUPER SUCO', 10000, 'ml', [
+    ['AGUA FILTRADA', 10000], ['LIMAO TAHITI', 600], ['ACUCAR REFINADO', 600],
+    ['ACIDO CITRICO', 480], ['ACIDO MALICO', 240], ['SAL REFINADO', 20],
+  ]);
+  criarProducaoInterna('SHRUB DE TANGERINA CLEMENTINA', 870, 'ml', [
+    ['SUCO DE TANGERINA', 600], ['VINAGRE DE MACA', 70], ['XAROPE DE ACUCAR (SIMPLES)', 200],
+  ]);
+  criarProducaoInterna('VODKA COM CHA DO AMOR (TALCHA)', 1000, 'ml', [
+    ['ABSOLUT 1L', 1000], ['CHA DO AMOR (TALCHA)', 15],
+  ]);
+  criarProducaoInterna('XAROPE DE GENGIBRE', 1000, 'ml', [
+    ['GENGIBRE', 200], ['ACUCAR REFINADO', 500], ['AGUA FILTRADA', 500],
+  ]); // EST a calibrar
+  criarProducaoInterna('ESPUMA DE GENGIBRE', 1000, 'ml', [
+    ['XAROPE DE GENGIBRE', 600], ['CLARA DE OVO PASTEURIZADA', 400],
+  ]); // EST a calibrar
+  criarProducaoInterna('XAROPE DE CAPIM SANTO', 1000, 'ml', [
+    ['CAPIM SANTO', 100], ['AGUA FILTRADA', 1000],
+  ]); // EST a calibrar
+
+  recalcAllProducoesInternas();
+
+  // As 10 fichas tecnicas do cardapio Florest (5 autorais + 5 classicos VV),
+  // conforme a ficha tecnica oficial. preco_venda/markup_alvo ficam 0 - o
+  // usuario preenche depois. Autorais recebem vendas_periodo planejado (mix
+  // do pacote); classicos ficam com vendas_periodo 0 (open bar).
+  const criarReceita = (nome, categoria, modo_preparo, copo, guarnicao, itens, vendasPeriodo = 0) => {
+    if (query('SELECT id FROM receitas WHERE nome = ?', [nome])[0]) return; // ja existe, nao recria
+    const receitaId = runInsert(`INSERT INTO receitas
+      (nome, categoria, modo_preparo, copo, guarnicao, preco_venda, ativo, utensilios, tempo_preparo, rendimento, vendas_periodo, markup_alvo)
+      VALUES (?, ?, ?, ?, ?, 0, 1, '', '', '', ?, 0)`,
+      [nome, categoria, modo_preparo, copo, guarnicao, vendasPeriodo]);
+    for (const [nomeInsumo, quantidade] of itens) {
+      const insumoId = idPorNome(nomeInsumo);
+      if (!insumoId) continue; // insumo nao encontrado - pula esse item em vez de gravar id invalido
+      run('INSERT INTO receita_itens (receita_id, insumo_id, quantidade) VALUES (?, ?, ?)', [receitaId, insumoId, quantidade]);
+    }
+  };
+
+  criarReceita('Clareira', 'Autoral Florest', 'Montado', 'Taça de vinho branco', 'Gomo de tangerina', [
+    ['VODKA COM CHA DO AMOR (TALCHA)', 30], ['SHRUB DE TANGERINA CLEMENTINA', 10], ['MARTINI BIANCO 1L', 20],
+    ['PURE DE PESSEGO FABBRI', 20], ['SUPER SUCO', 10], ['AGUA FILTRADA', 27],
+  ], 200);
+  criarReceita('Jardim', 'Autoral Florest', 'Batido', 'Coupé', 'Zest siciliano', [
+    ['DRACO NEROLI GIN', 45], ['XAROPE DE ACUCAR (SIMPLES)', 25], ['SUPER SUCO', 15], ['HORTELA', 5],
+    ['XAROPE DE CAPIM SANTO', 5], ['AGUA COM GAS 1,5L', 10], ['SOLUCAO SALINA', 1],
+  ], 150);
+  criarReceita('Pomar', 'Autoral Florest', 'Batido', 'Old-fashioned', 'Lâmina de maçã verde', [
+    ['JACK DANIEL´S APPLE 1L', 30], ['SCOTCH WHITE HORSE 1L', 15], ['SUPER SUCO', 15],
+    ['XAROPE DE ACUCAR (SIMPLES)', 15], ['CLARA DE OVO PASTEURIZADA', 30], ['BITTER DE LARANJA', 1],
+  ], 150);
+  criarReceita('Refúgio', 'Autoral Florest', 'Batido', 'Old-fashioned / gelão', 'Zest siciliano', [
+    ['NIB GIN (PERA)', 45], ['XAROPE DE ACUCAR (SIMPLES)', 30], ['SUPER SUCO', 25], ['NIB BITTER', 1.5],
+  ], 150);
+  criarReceita('Encanto', 'Autoral Florest', 'Mexido', 'Old-fashioned / gelão', 'Zest laranja', [
+    ['JACK DANIEL´S 1L', 30], ['ALEXANDRION 7 BRANDY 1L', 30], ['LIMAO TAHITI', 15],
+    ['LICOR DE CAFE SCHLUCK 900ML', 5], ['LICOR 43 700ML', 5], ['BITTER DE CHOCOLATE', 1.5],
+  ], 100);
+  criarReceita('Spritz Veneziano', 'Clássico VV', 'Montado (base à escolha; custeado com Aperol)', 'Taça de vinho branco', 'Gomo de laranja/limão', [
+    ['APEROL 750 ML', 60], ['ESPUMANTE BRUT 750ML', 90], ['AGUA COM GAS 1,5L', 20],
+  ]);
+  criarReceita('Mango Passion', 'Clássico VV', 'Batido', 'Coupé', 'Semente de maracujá', [
+    ['ABSOLUT 1L', 30], ['SUCO CONCENTRADO MANGA MAGUARY 500ML', 30], ['SUPER SUCO', 15],
+    ['XAROPE DE ACUCAR (SIMPLES)', 15], ['ESPUMA DE GENGIBRE', 60], ['MARACUJA POLPA', 5],
+  ]);
+  criarReceita('Negroni', 'Clássico VV', 'Mexido', 'Old-fashioned / gelão', 'Zest laranja', [
+    ['DRACO LONDON DRY', 30], ['CAMPARI 998 ML', 30], ['VERMUTE ROSSO 1L', 30],
+  ]);
+  criarReceita('Fitzgerald', 'Clássico VV', 'Batido', 'Old-fashioned / gelão', 'Zest siciliano', [
+    ['DRACO LONDON DRY', 45], ['SUPER SUCO', 15], ['XAROPE DE ACUCAR (SIMPLES)', 25], ['NIB BITTER', 1.5],
+  ]);
+  criarReceita('Gin Tônica', 'Clássico VV', 'Montado', 'Taça baloon', 'Zest siciliano', [
+    ['DRACO LONDON DRY', 60], ['AGUA TONICA 1,5L', 120], ['LIMAO TAHITI', 3],
+  ]);
 
   recalcAllProducoesInternas();
 }
