@@ -39,7 +39,7 @@ function bindDraftFormFields(ids, fieldMap, numericFields, draftKey, onChange) {
 function salvarReceita() {
   const id = state.editingReceitaId;
   const d = state.receitaDraft;
-  const allowed = ['nome', 'categoria', 'copo', 'guarnicao', 'modo_preparo', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo', 'markup_alvo'];
+  const allowed = ['nome', 'categoria', 'copo', 'guarnicao', 'modo_preparo', 'tempo_preparo', 'rendimento'];
   for (const field of allowed) updateReceitaField(id, field, d[field]);
 
   const itensBanco = query('SELECT id FROM receita_itens WHERE receita_id = ?', [id]);
@@ -175,14 +175,12 @@ function attachGlobalHandlers() {
   });
 
   bindDraftFormFields(
-    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-preco-venda', 're-utensilios', 're-tempo-preparo', 're-rendimento', 're-vendas-periodo', 're-markup-alvo'],
+    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-tempo-preparo', 're-rendimento'],
     {
       're-nome': 'nome', 're-categoria': 'categoria', 're-copo': 'copo', 're-guarnicao': 'guarnicao',
-      're-modo-preparo': 'modo_preparo', 're-preco-venda': 'preco_venda', 're-utensilios': 'utensilios',
-      're-tempo-preparo': 'tempo_preparo', 're-rendimento': 'rendimento', 're-vendas-periodo': 'vendas_periodo',
-      're-markup-alvo': 'markup_alvo',
+      're-modo-preparo': 'modo_preparo', 're-tempo-preparo': 'tempo_preparo', 're-rendimento': 'rendimento',
     },
-    ['preco_venda', 'vendas_periodo', 'markup_alvo'],
+    [],
     'receitaDraft',
     renderReceitaEditorComputados
   );
@@ -198,14 +196,6 @@ function attachGlobalHandlers() {
     qtdInput.value = '';
     reAddInsumoSelect.value = '';
     updateUnidadeAviso(reAddInsumoSelect, document.getElementById('re-add-unidade'));
-  });
-
-  document.getElementById('btn-aplicar-preco-sugerido').addEventListener('click', () => {
-    const custo = calcCustoDraftItens(state.receitaDraft.itens);
-    const sugerido = Math.round(calcPrecoSugerido(custo, state.receitaDraft.markup_alvo || 0) * 100) / 100;
-    state.receitaDraft.preco_venda = sugerido;
-    document.getElementById('re-preco-venda').value = sugerido;
-    renderReceitaEditorComputados();
   });
 
   bindDraftFormFields(

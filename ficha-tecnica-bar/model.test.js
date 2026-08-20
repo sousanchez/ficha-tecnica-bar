@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  calcIndicadores, computeMenuEngineering, cmvClass, calcCustoEventoPessoa, calcPrecoSugerido,
+  calcIndicadores, cmvClass, calcCustoEventoPessoa,
   calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
 } = require('./model.js');
 
@@ -33,37 +33,6 @@ test('cmvClass: faixas boa/atencao/ruim', () => {
   assert.equal(cmvClass(null), '');
 });
 
-test('computeMenuEngineering: sem nenhuma receita com vendas_periodo -> null', () => {
-  const receitas = [{ id: 1, nome: 'X', custo: 5, preco_venda: 10, vendas_periodo: 0 }];
-  assert.equal(computeMenuEngineering(receitas), null);
-});
-
-test('computeMenuEngineering: classifica os 4 quadrantes contra a media do cardapio', () => {
-  // media de vendas = (100+100+10+10)/4 = 55; media de margem = (8+2+8+2)/4 = 5
-  const receitas = [
-    { id: 1, nome: 'Estrela', custo: 2, preco_venda: 10, vendas_periodo: 100 },  // margem 8 (>=5), venda 100 (>=55) -> estrela
-    { id: 2, nome: 'Cavalo', custo: 8, preco_venda: 10, vendas_periodo: 100 },   // margem 2 (<5), venda 100 (>=55) -> cavalo
-    { id: 3, nome: 'Enigma', custo: 2, preco_venda: 10, vendas_periodo: 10 },    // margem 8 (>=5), venda 10 (<55) -> enigma
-    { id: 4, nome: 'Abacaxi', custo: 8, preco_venda: 10, vendas_periodo: 10 },   // margem 2 (<5), venda 10 (<55) -> abacaxi
-  ];
-  const quad = computeMenuEngineering(receitas);
-  assert.deepEqual(quad.estrela.map((r) => r.nome), ['Estrela']);
-  assert.deepEqual(quad.cavalo.map((r) => r.nome), ['Cavalo']);
-  assert.deepEqual(quad.enigma.map((r) => r.nome), ['Enigma']);
-  assert.deepEqual(quad.abacaxi.map((r) => r.nome), ['Abacaxi']);
-});
-
-test('computeMenuEngineering: ignora receitas sem venda no periodo na classificacao', () => {
-  const receitas = [
-    { id: 1, nome: 'Com venda', custo: 2, preco_venda: 10, vendas_periodo: 5 },
-    { id: 2, nome: 'Sem venda', custo: 2, preco_venda: 10, vendas_periodo: 0 },
-  ];
-  const quad = computeMenuEngineering(receitas);
-  const todos = [...quad.estrela, ...quad.cavalo, ...quad.enigma, ...quad.abacaxi];
-  assert.equal(todos.length, 1);
-  assert.equal(todos[0].nome, 'Com venda');
-});
-
 test('calcCustoEventoPessoa: lista vazia -> 0 (sem drink selecionado)', () => {
   assert.equal(calcCustoEventoPessoa([], 5), 0);
 });
@@ -79,22 +48,6 @@ test('calcCustoEventoPessoa: media simples entre varios drinks, escalada por dos
 
 test('calcCustoEventoPessoa: doses_por_pessoa = 0 -> 0 mesmo com drinks selecionados', () => {
   assert.equal(calcCustoEventoPessoa([10, 20], 0), 0);
-});
-
-test('calcPrecoSugerido: custo x markup normal', () => {
-  assert.equal(calcPrecoSugerido(10, 3), 30);
-});
-
-test('calcPrecoSugerido: custo 0 -> 0', () => {
-  assert.equal(calcPrecoSugerido(0, 5), 0);
-});
-
-test('calcPrecoSugerido: markup 0 -> 0', () => {
-  assert.equal(calcPrecoSugerido(10, 0), 0);
-});
-
-test('calcPrecoSugerido: markup negativo -> sem trava, resultado negativo', () => {
-  assert.equal(calcPrecoSugerido(10, -1), -10);
 });
 
 test('calcCustoDraftItens: lista vazia -> 0', () => {
