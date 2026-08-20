@@ -213,7 +213,7 @@ function deleteReceita(id) {
   refreshAll();
 }
 function updateReceitaField(id, field, value) {
-  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo', 'markup_alvo'];
+  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'tempo_preparo', 'rendimento'];
   setField('receitas', allowed, id, field, value);
 }
 function addReceitaItem(receitaId, insumoId, quantidade) {
@@ -245,26 +245,6 @@ function cmvClass(cmv) {
   if (cmv <= 25) return 'good';
   if (cmv <= 35) return 'warn';
   return 'bad';
-}
-
-// Engenharia de cardapio: cruza giro de vendas (popularidade) com margem (lucratividade)
-// contra a media do proprio cardapio - classificacao classica em 4 quadrantes.
-function computeMenuEngineering(todasReceitas = getReceitas()) {
-  const receitas = todasReceitas.filter((r) => r.vendas_periodo > 0);
-  if (!receitas.length) return null;
-  const comMargem = receitas.map((r) => ({ ...r, margem: calcIndicadores(r.custo, r.preco_venda).margem }));
-  const mediaVendas = comMargem.reduce((s, r) => s + r.vendas_periodo, 0) / comMargem.length;
-  const mediaMargem = comMargem.reduce((s, r) => s + r.margem, 0) / comMargem.length;
-  const quad = { estrela: [], cavalo: [], enigma: [], abacaxi: [] };
-  for (const r of comMargem) {
-    const popular = r.vendas_periodo >= mediaVendas;
-    const lucrativo = r.margem >= mediaMargem;
-    if (popular && lucrativo) quad.estrela.push(r);
-    else if (popular && !lucrativo) quad.cavalo.push(r);
-    else if (!popular && lucrativo) quad.enigma.push(r);
-    else quad.abacaxi.push(r);
-  }
-  return quad;
 }
 
 // ---------- Eventos (pacotes) ----------
@@ -322,10 +302,6 @@ function calcCustoEvento(eventoId) {
   return calcCustoEventoPessoa(custos, evento ? evento.doses_por_pessoa : 0);
 }
 
-// ---------- Ficha tecnica: markup alvo e preco sugerido ----------
-function calcPrecoSugerido(custo, markupAlvo) {
-  return custo * markupAlvo;
-}
 function calcCustoDraftItens(itens) {
   return itens.reduce((sum, it) => sum + it.quantidade * it.preco_unitario, 0);
 }
@@ -356,7 +332,7 @@ function cmvIcon(cmv) {
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
   module.exports = {
-    calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
-    calcPrecoSugerido, calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+    calcIndicadores, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
+    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
   };
 }

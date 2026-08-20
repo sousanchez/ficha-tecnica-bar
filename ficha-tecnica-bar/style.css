@@ -258,9 +258,8 @@ h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
 .indicador span { font-size: 11px; color: var(--muted); text-transform: uppercase; }
 .indicador strong { font-size: 19px; font-weight: 700; }
 
-/* No editor de receita, fica logo abaixo do preco/markup que os define, e
-   gruda no topo do modal ao rolar - senao o numero que a tela existe pra
-   mostrar (CMV) some assim que voce rola ate os insumos. */
+/* No editor de receita, gruda no topo do modal ao rolar - senao o numero que
+   a tela existe pra mostrar (Custo total) some assim que voce rola ate os insumos. */
 .indicadores-sticky {
   position: sticky;
   top: 57px; /* logo abaixo do .modal-header, que tambem e sticky top:0 */
@@ -269,27 +268,6 @@ h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
   padding-top: 4px;
   margin-top: 0;
 }
-
-.me-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 10px;
-}
-.me-quad {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-}
-.me-quad h3 { margin: 0 0 10px; font-size: 13px; color: var(--text); font-weight: 600; }
-.me-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed var(--border); }
-.me-item:last-child { border-bottom: none; }
-.me-estrela { border-left-color: var(--good); }
-.me-cavalo { border-left-color: var(--warn); }
-.me-enigma { border-left-color: var(--accent-2); }
-.me-abacaxi { border-left-color: var(--bad); }
 
 .checklist {
   display: flex;
@@ -314,16 +292,6 @@ h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
 }
 .checklist-item:last-child { border-bottom: none; }
 .checklist-item input[type="checkbox"] { margin-right: 6px; }
-
-.sugestao-preco {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: -4px 0 16px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.sugestao-preco strong { color: var(--text); }
 
 /* Breakpoint unico (o app era 100% desktop-only ate aqui) - empilha o
    essencial em telas estreitas sem reestruturar a navegacao. A grade de

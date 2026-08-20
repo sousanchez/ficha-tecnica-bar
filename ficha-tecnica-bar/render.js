@@ -118,72 +118,24 @@ function renderInsumos() {
 function renderReceitas() {
   const receitas = getReceitas();
   const list = document.getElementById('receitas-list');
-  list.innerHTML = receitas.map((r) => {
-    const { cmv, margem } = calcIndicadores(r.custo, r.preco_venda);
-    return `
+  list.innerHTML = receitas.map((r) => `
       <div class="receita-card" onclick="openReceitaEditor(${r.id})">
         <div class="receita-card-title">${escapeHtml(r.nome)}</div>
         <div class="receita-card-row"><span>Custo</span><strong>${fmtMoeda(r.custo)}</strong></div>
-        <div class="receita-card-row"><span>Venda</span><strong>${fmtMoeda(r.preco_venda)}</strong></div>
-        <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</strong></div>
-        <div class="receita-card-row"><span>Margem</span><strong>${fmtMoeda(margem)}</strong></div>
       </div>
-    `;
-  }).join('') || '<p class="muted">Nenhuma ficha tecnica cadastrada ainda.</p>';
+    `).join('') || '<p class="muted">Nenhuma ficha tecnica cadastrada ainda.</p>';
 }
 
 function renderDashboard() {
   const receitas = getReceitas();
   const tbody = document.getElementById('dashboard-tbody');
-  const sorted = [...receitas].sort((a, b) => {
-    const ca = calcIndicadores(a.custo, a.preco_venda).cmv ?? -1;
-    const cb = calcIndicadores(b.custo, b.preco_venda).cmv ?? -1;
-    return cb - ca;
-  });
-  tbody.innerHTML = sorted.map((r) => {
-    const { cmv, markup, margem } = calcIndicadores(r.custo, r.preco_venda);
-    return `
+  tbody.innerHTML = receitas.map((r) => `
       <tr>
         <td>${escapeHtml(r.nome)}</td>
         <td class="num">${fmtMoeda(r.custo)}</td>
-        <td class="num">${fmtMoeda(r.preco_venda)}</td>
-        <td class="num"><span class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</span></td>
-        <td class="num">${markup ? markup.toFixed(2) + 'x' : '-'}</td>
-        <td class="num">${fmtMoeda(margem)}</td>
-        <td class="num">${r.vendas_periodo || '-'}</td>
       </tr>
-    `;
-  }).join('') || '<tr><td colspan="7" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
+    `).join('') || '<tr><td colspan="2" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
   document.getElementById('dashboard-total').textContent = `${receitas.length} ficha(s) tecnica(s)`;
-  renderMenuEngineering();
-}
-
-function renderMenuEngineering() {
-  const container = document.getElementById('menu-engineering');
-  const todasReceitas = getReceitas();
-  const semDado = todasReceitas.filter((r) => !(r.vendas_periodo > 0)).length;
-  const quad = computeMenuEngineering(todasReceitas);
-  if (!quad) {
-    container.innerHTML = '<p class="muted">Preencha o campo "Vendas no periodo" nas fichas tecnicas para ver a engenharia de cardapio aqui.</p>';
-    return;
-  }
-  const item = (r) => `<div class="me-item"><span>${escapeHtml(r.nome)}</span><span class="muted">${r.vendas_periodo}x · ${fmtMoeda(r.margem)}</span></div>`;
-  const box = (title, cls, items) => `
-    <div class="me-quad ${cls}">
-      <h3>${title}</h3>
-      ${items.length ? items.map(item).join('') : '<span class="muted">Nenhum item</span>'}
-    </div>`;
-  const aviso = semDado
-    ? `<p class="muted aviso-dados-incompletos">${semDado} ficha(s) sem "Vendas no período" — não entraram nesta classificação.</p>`
-    : '';
-  container.innerHTML = `
-    ${aviso}
-    <div class="me-grid">
-      ${box('⭐ Estrela — alta venda, boa margem', 'me-estrela', quad.estrela)}
-      ${box('🐴 Cavalo de batalha — alta venda, margem baixa', 'me-cavalo', quad.cavalo)}
-      ${box('❓ Enigma — baixa venda, boa margem', 'me-enigma', quad.enigma)}
-      ${box('🍍 Abacaxi — baixa venda, margem baixa', 'me-abacaxi', quad.abacaxi)}
-    </div>`;
 }
 
 function renderEventos() {
@@ -343,8 +295,7 @@ function abrirRascunhoDaReceita(id) {
   const r = getReceita(id);
   state.receitaDraft = {
     nome: r.nome, categoria: r.categoria ?? '', copo: r.copo ?? '', guarnicao: r.guarnicao ?? '', modo_preparo: r.modo_preparo ?? '',
-    preco_venda: r.preco_venda, utensilios: r.utensilios ?? '', tempo_preparo: r.tempo_preparo ?? '', rendimento: r.rendimento ?? '',
-    vendas_periodo: r.vendas_periodo, markup_alvo: r.markup_alvo || 0,
+    tempo_preparo: r.tempo_preparo ?? '', rendimento: r.rendimento ?? '',
     itens: r.itens.map((it) => ({ id: it.id, tempId: null, insumo_id: it.insumo_id, quantidade: it.quantidade, nome: it.nome, unidade_compra: it.unidade_compra, preco_unitario: it.preco_unitario })),
   };
   state.receitaDraftSalvo = JSON.parse(JSON.stringify(state.receitaDraft));
@@ -375,12 +326,8 @@ function renderReceitaEditorCampos() {
   document.getElementById('re-copo').value = d.copo || '';
   document.getElementById('re-guarnicao').value = d.guarnicao || '';
   document.getElementById('re-modo-preparo').value = d.modo_preparo || '';
-  document.getElementById('re-preco-venda').value = d.preco_venda;
-  document.getElementById('re-utensilios').value = d.utensilios || '';
   document.getElementById('re-tempo-preparo').value = d.tempo_preparo || '';
   document.getElementById('re-rendimento').value = d.rendimento || '';
-  document.getElementById('re-vendas-periodo').value = d.vendas_periodo || 0;
-  document.getElementById('re-markup-alvo').value = d.markup_alvo || 0;
 
   const select = document.getElementById('re-add-insumo');
   const insumos = getInsumosParaSelect();
@@ -393,16 +340,7 @@ function renderReceitaEditorComputados() {
   const d = state.receitaDraft;
   if (!d) return;
   const custo = calcCustoDraftItens(d.itens);
-  const precoSugerido = calcPrecoSugerido(custo, d.markup_alvo || 0);
-  const { cmv, markup, margem } = calcIndicadores(custo, d.preco_venda);
-
   document.getElementById('re-custo').textContent = fmtMoeda(custo);
-  document.getElementById('re-preco-sugerido').textContent = fmtMoeda(precoSugerido);
-  const cmvEl = document.getElementById('re-cmv');
-  cmvEl.textContent = cmvIcon(cmv) + fmtPct(cmv);
-  cmvEl.className = 'badge ' + cmvClass(cmv);
-  document.getElementById('re-markup').textContent = markup ? markup.toFixed(2) + 'x' : '-';
-  document.getElementById('re-margem').textContent = fmtMoeda(margem);
 
   renderItemsTable(
     document.getElementById('re-itens-tbody'),
@@ -555,7 +493,6 @@ function printReceita(id) {
   const r = getReceita(id);
   if (!r) return;
   const custo = calcCustoReceita(id);
-  const { cmv, markup, margem } = calcIndicadores(custo, r.preco_venda);
   const itensHtml = r.itens.map((it) => `<tr><td>${escapeHtml(it.nome)}</td><td>${it.quantidade} ${it.unidade_compra}</td></tr>`).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(r.nome)}</title>
     <style>
@@ -572,15 +509,10 @@ function printReceita(id) {
     <h1>${escapeHtml(r.nome)}</h1>
     <div class="meta">${escapeHtml(r.categoria || '')}${r.copo ? ' · Copo: ' + escapeHtml(r.copo) : ''}${r.rendimento ? ' · Rendimento: ' + escapeHtml(r.rendimento) : ''}${r.tempo_preparo ? ' · Tempo: ' + escapeHtml(r.tempo_preparo) : ''}</div>
     <p><strong>Guarnição:</strong> ${escapeHtml(r.guarnicao || '-')}</p>
-    <p><strong>Utensílios:</strong> ${escapeHtml(r.utensilios || '-')}</p>
     <p><strong>Modo de preparo:</strong><br>${escapeHtml(r.modo_preparo || '-').replace(/\n/g, '<br>')}</p>
     <table><thead><tr><th>Insumo</th><th>Quantidade</th></tr></thead><tbody>${itensHtml}</tbody></table>
     <div class="indicadores">
       <div>Custo total<strong>${fmtMoeda(custo)}</strong></div>
-      <div>Preço de venda<strong>${fmtMoeda(r.preco_venda)}</strong></div>
-      <div>CMV<strong>${fmtPct(cmv)}</strong></div>
-      <div>Markup<strong>${markup ? markup.toFixed(2) + 'x' : '-'}</strong></div>
-      <div>Margem<strong>${fmtMoeda(margem)}</strong></div>
     </div>
     </body></html>`;
   const w = window.open('', '_blank');
