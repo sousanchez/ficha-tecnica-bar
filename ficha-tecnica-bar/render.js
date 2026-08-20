@@ -161,7 +161,7 @@ function renderProducoes() {
     <div class="receita-card" onclick="openProducaoEditor(${r.id})">
       <div class="receita-card-title">${escapeHtml(r.nome)}</div>
       <div class="receita-card-row"><span>Custo do lote</span><strong>${fmtMoeda(r.preco_compra)}</strong></div>
-      <div class="receita-card-row"><span>Custo unitário</span><strong>${fmtMoeda(r.preco_unitario)} / ${r.unidade_compra}</strong></div>
+      <div class="receita-card-row"><span>Custo unitário</span><strong>${fmtMoedaUnitario(r.preco_unitario)} / ${r.unidade_compra}</strong></div>
       <div class="receita-card-row"><span>Categoria</span><strong>${escapeHtml(r.categoria || '-')}</strong></div>
     </div>
   `).join('') || '<p class="muted">Nenhuma produção interna cadastrada ainda.</p>';
@@ -247,7 +247,7 @@ function renderProducaoEditorComputados() {
   const custoTotal = calcCustoDraftItens(d.itens);
   const custoUnitario = calcCustoUnitario(custoTotal, d.tamanho_unidade, d.fator_correcao);
   document.getElementById('pr-custo-total').textContent = fmtMoeda(custoTotal);
-  document.getElementById('pr-custo-unitario').textContent = `${fmtMoeda(custoUnitario)} / ${d.unidade_compra}`;
+  document.getElementById('pr-custo-unitario').textContent = `${fmtMoedaUnitario(custoUnitario)} / ${d.unidade_compra}`;
 
   renderItemsTable(
     document.getElementById('pr-itens-tbody'),

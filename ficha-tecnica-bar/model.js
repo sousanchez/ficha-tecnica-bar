@@ -237,6 +237,15 @@ function calcIndicadores(custo, precoVenda) {
 function fmtMoeda(v) {
   return (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+// Custo unitario (por ml/g/unidade) costuma ser fracao de centavo (ex: acucar
+// a R$0,0026/g) - 2 casas fixas mostraria "R$0,00" e pareceria de graca. Mostra
+// ate 4 casas quando precisa, mas nao deixa passar de R$0,01 pra baixo: abaixo
+// disso arredonda pra cima pro minimo de 1 centavo (nunca mostra fracao de centavo).
+function fmtMoedaUnitario(v) {
+  const val = v ?? 0;
+  if (val > 0 && val < 0.01) return fmtMoeda(0.01);
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+}
 function fmtPct(v) {
   return v === null || v === undefined ? '-' : v.toFixed(1) + '%';
 }
@@ -332,7 +341,7 @@ function cmvIcon(cmv) {
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
   module.exports = {
-    calcIndicadores, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
+    calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
     calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
   };
 }
