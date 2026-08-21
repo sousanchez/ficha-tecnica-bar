@@ -106,10 +106,12 @@ function migrateSchema() {
   addColIfMissing('receitas', "rendimento TEXT DEFAULT ''");
   addColIfMissing('receitas', 'vendas_periodo REAL DEFAULT 0');
   addColIfMissing('receitas', 'markup_alvo REAL DEFAULT 0');
+  addColIfMissing('eventos', "estagio TEXT DEFAULT 'lead'");
   db.run("UPDATE insumos SET tipo = 'comprado' WHERE tipo IS NULL");
   db.run('UPDATE insumos SET fator_correcao = 1 WHERE fator_correcao IS NULL');
   db.run('UPDATE insumos SET estoque_minimo = 0 WHERE estoque_minimo IS NULL');
   db.run('UPDATE insumos SET estoque_atual = 0 WHERE estoque_atual IS NULL');
+  db.run("UPDATE eventos SET estagio = 'lead' WHERE estagio IS NULL");
   seedProducaoPropria();
   seedFichasFlorest();
   seedFichasOlivio();

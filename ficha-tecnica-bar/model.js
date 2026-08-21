@@ -286,6 +286,13 @@ function cmvClass(cmv) {
 }
 
 // ---------- Eventos (pacotes) ----------
+const ESTAGIOS_EVENTO = [
+  { valor: 'lead', label: 'Lead' },
+  { valor: 'proposta', label: 'Proposta' },
+  { valor: 'confirmado', label: 'Confirmado' },
+  { valor: 'realizado', label: 'Realizado' },
+];
+
 // Custo medio por dose entre os drinks selecionados, escalado por quantas
 // doses cada convidado consome. Funcao pura - recebe os custos ja calculados
 // em vez de buscar do banco, pra dar pra testar sem sql.js/localStorage.
@@ -313,7 +320,7 @@ function addEvento() {
   openEventoEditor(id);
 }
 function updateEventoField(id, field, value) {
-  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa'];
+  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa', 'estagio'];
   setField('eventos', allowed, id, field, value);
 }
 function deleteEvento(id) {
@@ -371,6 +378,6 @@ function cmvIcon(cmv) {
 if (typeof module !== 'undefined') {
   module.exports = {
     calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
-    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
   };
 }
