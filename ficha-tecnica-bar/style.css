@@ -202,6 +202,31 @@ td input[type="checkbox"] { width: auto; min-width: 0; }
 .receita-card-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; color: var(--muted); }
 .receita-card-row strong { color: var(--text); }
 
+.kanban-board {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.kanban-col {
+  flex: 1;
+  min-width: 220px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+.kanban-col-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.kanban-col .receita-card { margin-bottom: 10px; }
+.kanban-col .receita-card:last-child { margin-bottom: 0; }
+.kanban-card-estagio { width: 100%; margin-top: 8px; }
+
 .modal-overlay {
   display: none;
   position: fixed; inset: 0;

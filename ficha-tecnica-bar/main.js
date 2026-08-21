@@ -4,6 +4,7 @@ let state = {
   tab: 'dashboard',
   insumoFiltro: '',
   insumosSelecionados: new Set(),
+  eventosView: 'lista',
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
@@ -105,9 +106,15 @@ function ajustarTopbarHeight() {
 function attachGlobalHandlers() {
   ajustarTopbarHeight();
   window.addEventListener('resize', ajustarTopbarHeight);
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.tab = btn.dataset.tab;
+      renderTabs();
+    });
+  });
+  document.querySelectorAll('.eventos-view-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.eventosView = btn.dataset.view;
       renderTabs();
     });
   });
