@@ -138,6 +138,35 @@ function deleteInsumo(id) {
   run('DELETE FROM insumos WHERE id = ?', [id]);
   renderInsumos();
 }
+function deleteInsumosSelecionados() {
+  const ids = [...state.insumosSelecionados];
+  if (ids.length === 0) return;
+
+  const bloqueados = [];
+  const liberados = [];
+  for (const id of ids) {
+    const usadoReceita = query('SELECT COUNT(*) as c FROM receita_itens WHERE insumo_id = ?', [id])[0].c;
+    const usadoProducao = query('SELECT COUNT(*) as c FROM producao_itens WHERE ingrediente_id = ?', [id])[0].c;
+    if (usadoReceita > 0 || usadoProducao > 0) bloqueados.push(id);
+    else liberados.push(id);
+  }
+
+  if (liberados.length === 0) {
+    alert(`${bloqueados.length} insumo(s) selecionado(s) estão em uso em fichas técnicas/produções internas e não podem ser excluídos. Remova-os de lá primeiro.`);
+    return;
+  }
+  const avisoBloqueados = bloqueados.length > 0
+    ? `\n\n${bloqueados.length} dos selecionados estão em uso e não serão excluídos.`
+    : '';
+  if (!confirm(`Excluir ${liberados.length} insumo(s) selecionado(s)?${avisoBloqueados}`)) return;
+
+  for (const id of liberados) {
+    run('DELETE FROM producao_itens WHERE producao_id = ?', [id]);
+    run('DELETE FROM insumos WHERE id = ?', [id]);
+    state.insumosSelecionados.delete(id);
+  }
+  renderInsumos();
+}
 
 // ---------- Producoes internas (xaropes, espumas, batches...) ----------
 function addProducaoInterna() {
@@ -213,7 +242,7 @@ function deleteReceita(id) {
   refreshAll();
 }
 function updateReceitaField(id, field, value) {
-  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'preco_venda', 'utensilios', 'tempo_preparo', 'rendimento', 'vendas_periodo', 'markup_alvo'];
+  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'tempo_preparo', 'rendimento'];
   setField('receitas', allowed, id, field, value);
 }
 function addReceitaItem(receitaId, insumoId, quantidade) {
@@ -237,6 +266,15 @@ function calcIndicadores(custo, precoVenda) {
 function fmtMoeda(v) {
   return (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+// Custo unitario (por ml/g/unidade) costuma ser fracao de centavo (ex: acucar
+// a R$0,0026/g) - 2 casas fixas mostraria "R$0,00" e pareceria de graca. Mostra
+// ate 4 casas quando precisa, mas nao deixa passar de R$0,01 pra baixo: abaixo
+// disso arredonda pra cima pro minimo de 1 centavo (nunca mostra fracao de centavo).
+function fmtMoedaUnitario(v) {
+  const val = v ?? 0;
+  if (val > 0 && val < 0.01) return fmtMoeda(0.01);
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+}
 function fmtPct(v) {
   return v === null || v === undefined ? '-' : v.toFixed(1) + '%';
 }
@@ -247,27 +285,14 @@ function cmvClass(cmv) {
   return 'bad';
 }
 
-// Engenharia de cardapio: cruza giro de vendas (popularidade) com margem (lucratividade)
-// contra a media do proprio cardapio - classificacao classica em 4 quadrantes.
-function computeMenuEngineering(todasReceitas = getReceitas()) {
-  const receitas = todasReceitas.filter((r) => r.vendas_periodo > 0);
-  if (!receitas.length) return null;
-  const comMargem = receitas.map((r) => ({ ...r, margem: calcIndicadores(r.custo, r.preco_venda).margem }));
-  const mediaVendas = comMargem.reduce((s, r) => s + r.vendas_periodo, 0) / comMargem.length;
-  const mediaMargem = comMargem.reduce((s, r) => s + r.margem, 0) / comMargem.length;
-  const quad = { estrela: [], cavalo: [], enigma: [], abacaxi: [] };
-  for (const r of comMargem) {
-    const popular = r.vendas_periodo >= mediaVendas;
-    const lucrativo = r.margem >= mediaMargem;
-    if (popular && lucrativo) quad.estrela.push(r);
-    else if (popular && !lucrativo) quad.cavalo.push(r);
-    else if (!popular && lucrativo) quad.enigma.push(r);
-    else quad.abacaxi.push(r);
-  }
-  return quad;
-}
-
 // ---------- Eventos (pacotes) ----------
+const ESTAGIOS_EVENTO = [
+  { valor: 'lead', label: 'Lead' },
+  { valor: 'proposta', label: 'Proposta' },
+  { valor: 'confirmado', label: 'Confirmado' },
+  { valor: 'realizado', label: 'Realizado' },
+];
+
 // Custo medio por dose entre os drinks selecionados, escalado por quantas
 // doses cada convidado consome. Funcao pura - recebe os custos ja calculados
 // em vez de buscar do banco, pra dar pra testar sem sql.js/localStorage.
@@ -295,7 +320,7 @@ function addEvento() {
   openEventoEditor(id);
 }
 function updateEventoField(id, field, value) {
-  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa'];
+  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa', 'estagio'];
   setField('eventos', allowed, id, field, value);
 }
 function deleteEvento(id) {
@@ -322,10 +347,6 @@ function calcCustoEvento(eventoId) {
   return calcCustoEventoPessoa(custos, evento ? evento.doses_por_pessoa : 0);
 }
 
-// ---------- Ficha tecnica: markup alvo e preco sugerido ----------
-function calcPrecoSugerido(custo, markupAlvo) {
-  return custo * markupAlvo;
-}
 function calcCustoDraftItens(itens) {
   return itens.reduce((sum, it) => sum + it.quantidade * it.preco_unitario, 0);
 }
@@ -356,7 +377,7 @@ function cmvIcon(cmv) {
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
   module.exports = {
-    calcIndicadores, computeMenuEngineering, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
-    calcPrecoSugerido, calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+    calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
+    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
   };
 }

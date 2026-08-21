@@ -11,6 +11,7 @@
     <header class="app-header">
       <h1>🍸 Ficha Técnica de Bar</h1>
       <div class="header-actions">
+        <button id="btn-cloud-status" class="btn secondary cloud-status cloud-status-off">☁️ Conectar nuvem</button>
         <button id="btn-export-db" class="btn secondary">Exportar banco (.db)</button>
         <button id="btn-import-db" class="btn secondary">Importar banco (.db)</button>
         <input type="file" id="input-import-db" accept=".db" hidden>
@@ -18,19 +19,20 @@
     </header>
 
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="insumos">Insumos</button>
+      <button class="tab-btn" data-tab="insumos">Insumos</button>
       <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
-      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
       <button class="tab-btn" data-tab="eventos">Eventos</button>
       <button class="tab-btn" data-tab="producoes">Produções</button>
     </nav>
   </div>
 
   <main>
-    <section id="tab-insumos" class="tab-panel active">
+    <section id="tab-insumos" class="tab-panel">
       <div class="toolbar">
         <input id="filtro-nome" type="text" placeholder="Buscar insumo...">
         <span id="insumos-count" class="muted"></span>
+        <button id="btn-delete-selecionados" class="btn danger" hidden>Excluir selecionados</button>
         <button id="btn-detect-volumes" class="btn secondary" title="Detecta ml/g no nome dos insumos que ainda estao como 'unidade'">🔍 Detectar volumes</button>
         <button id="btn-add-insumo" class="btn">+ Novo insumo</button>
       </div>
@@ -38,8 +40,8 @@
         <table>
           <thead>
             <tr>
+              <th><input type="checkbox" id="chk-insumos-all" title="Selecionar todos"></th>
               <th>Nome</th>
-              <th>Tipo</th>
               <th>Categoria</th>
               <th>Fornecedor</th>
               <th>Preço de compra</th>
@@ -65,9 +67,9 @@
       <div id="receitas-list" class="receitas-grid"></div>
     </section>
 
-    <section id="tab-dashboard" class="tab-panel">
+    <section id="tab-dashboard" class="tab-panel active">
       <div class="toolbar">
-        <span>Comparativo de CMV e margem por receita</span>
+        <span>Custo por receita</span>
         <span id="dashboard-total" class="muted"></span>
       </div>
       <div class="table-wrap">
@@ -76,27 +78,22 @@
             <tr>
               <th>Receita</th>
               <th>Custo</th>
-              <th>Preço de venda</th>
-              <th>CMV</th>
-              <th>Markup</th>
-              <th>Margem</th>
-              <th>Vendas período</th>
             </tr>
           </thead>
           <tbody id="dashboard-tbody"></tbody>
         </table>
       </div>
-
-      <h2>Engenharia de cardápio</h2>
-      <div id="menu-engineering"></div>
     </section>
 
     <section id="tab-eventos" class="tab-panel">
       <div class="toolbar">
         <span class="muted">Pacotes de evento (custo e preço por pessoa)</span>
+        <button class="tab-btn eventos-view-btn active" data-view="lista">Lista</button>
+        <button class="tab-btn eventos-view-btn" data-view="kanban">Kanban</button>
         <button id="btn-add-evento" class="btn">+ Novo evento</button>
       </div>
       <div id="eventos-list" class="receitas-grid"></div>
+      <div id="eventos-kanban" class="kanban-board" style="display:none;"></div>
     </section>
 
     <section id="tab-producoes" class="tab-panel">
@@ -120,23 +117,12 @@
           <label>Categoria <input id="re-categoria" type="text" placeholder="Ex: Clássico, Autoral"></label>
           <label>Copo <input id="re-copo" type="text" placeholder="Ex: Rocks, Taça"></label>
           <label>Guarnição <input id="re-guarnicao" type="text" placeholder="Ex: Rodela de limão"></label>
-          <label>Preço de venda <input id="re-preco-venda" type="number" step="0.01"></label>
-          <label>Markup alvo <input id="re-markup-alvo" type="number" step="0.5" placeholder="Ex: 3.5"></label>
-          <label>Utensílios <input id="re-utensilios" type="text" placeholder="Ex: Coqueteleira, jigger, bailarina"></label>
           <label>Tempo de preparo <input id="re-tempo-preparo" type="text" placeholder="Ex: 3 min"></label>
           <label>Rendimento <input id="re-rendimento" type="text" placeholder="Ex: 1 dose de 200ml"></label>
-          <label>Vendas no período (giro) <input id="re-vendas-periodo" type="number" step="1" placeholder="Ex: 40"></label>
-        </div>
-        <div class="sugestao-preco">
-          Preço sugerido: <strong id="re-preco-sugerido">R$ 0,00</strong>
-          <button id="btn-aplicar-preco-sugerido" class="btn secondary">Aplicar</button>
         </div>
 
         <div class="indicadores indicadores-sticky">
           <div class="indicador"><span>Custo total</span><strong id="re-custo">R$ 0,00</strong></div>
-          <div class="indicador"><span>CMV</span><strong id="re-cmv" class="badge">-</strong></div>
-          <div class="indicador"><span>Markup</span><strong id="re-markup">-</strong></div>
-          <div class="indicador"><span>Margem</span><strong id="re-margem">R$ 0,00</strong></div>
         </div>
 
         <label class="full">Modo de preparo
@@ -260,9 +246,30 @@
     </div>
   </div>
 
+  <div id="modal-cloud-overlay" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <span class="modal-title-input">Sincronizar com a nuvem</span>
+        <button id="modal-cloud-close" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>PIN do bar
+          <input id="cloud-pin-input" type="password" inputmode="numeric" placeholder="Ex: 121224">
+        </label>
+        <p class="muted cloud-hint">Conecta este navegador ao banco compartilhado. Use o mesmo PIN em todos os dispositivos - o banco daqui vira o mesmo em todo lugar.</p>
+        <p id="cloud-erro" class="muted cloud-erro" hidden></p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cloud-desconectar" class="btn danger" hidden>Desconectar</button>
+        <button id="btn-cloud-conectar" class="btn">Conectar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="lib/sql-wasm.js"></script>
   <script src="seed-data.js"></script>
   <script src="db.js"></script>
+  <script src="cloud.js"></script>
   <script src="model.js"></script>
   <script src="render.js"></script>
   <script src="main.js"></script>
