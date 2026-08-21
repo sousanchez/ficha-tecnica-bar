@@ -1,7 +1,7 @@
 // Estado global e conexao dos elementos da UI aos handlers de dados/render
 
 let state = {
-  tab: 'insumos',
+  tab: 'dashboard',
   insumoFiltro: '',
   editingReceitaId: null,
   editingProducaoId: null,

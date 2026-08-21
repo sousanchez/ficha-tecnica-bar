@@ -57,21 +57,13 @@ function renderInsumos() {
     : null;
 
   tbody.innerHTML = rows.map((r) => {
-    const isProducao = r.tipo === 'producao_interna';
-    const tipoBadge = isProducao
-      ? `<span class="badge">Produção</span> <button class="icon-btn" title="Editar producao" onclick="openProducaoEditor(${r.id})">✎</button>`
-      : `<span class="badge good">Comprado</span>`;
-    const precoCell = isProducao
-      ? `<span class="muted" title="Custo calculado a partir dos ingredientes">${fmtMoeda(r.preco_compra)}</span>`
-      : `<input class="num" data-insumo-id="${r.id}" data-field="preco_compra" type="number" step="0.01" value="${r.preco_compra}">`;
     const estoqueBaixo = r.estoque_minimo > 0 && r.estoque_atual < r.estoque_minimo;
     return `
     <tr>
       <td><input class="input-nome" data-insumo-id="${r.id}" data-field="nome" value="${escapeHtml(r.nome)}"></td>
-      <td>${tipoBadge}</td>
       <td><select data-insumo-id="${r.id}" data-field="categoria">${categoriaOptionsHtml(r.categoria)}</select></td>
       <td><input data-insumo-id="${r.id}" data-field="fornecedor" value="${escapeHtml(r.fornecedor || '')}"></td>
-      <td class="num">${precoCell}</td>
+      <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="preco_compra" type="number" step="0.01" value="${r.preco_compra}"></td>
       <td><select data-insumo-id="${r.id}" data-field="unidade_compra">${unidadeOptionsHtml(r.unidade_compra)}</select></td>
       <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="tamanho_unidade" type="number" step="0.01" value="${r.tamanho_unidade}"></td>
       <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="fator_correcao" type="number" step="0.01" value="${r.fator_correcao}" title="Multiplicador de perda (ex: 1.15 = 15% de perda). 1 = sem perda"></td>

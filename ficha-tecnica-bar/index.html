@@ -19,16 +19,16 @@
     </header>
 
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="insumos">Insumos</button>
+      <button class="tab-btn" data-tab="insumos">Insumos</button>
       <button class="tab-btn" data-tab="receitas">Fichas Técnicas</button>
-      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
       <button class="tab-btn" data-tab="eventos">Eventos</button>
       <button class="tab-btn" data-tab="producoes">Produções</button>
     </nav>
   </div>
 
   <main>
-    <section id="tab-insumos" class="tab-panel active">
+    <section id="tab-insumos" class="tab-panel">
       <div class="toolbar">
         <input id="filtro-nome" type="text" placeholder="Buscar insumo...">
         <span id="insumos-count" class="muted"></span>
@@ -40,7 +40,6 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Tipo</th>
               <th>Categoria</th>
               <th>Fornecedor</th>
               <th>Preço de compra</th>
@@ -66,7 +65,7 @@
       <div id="receitas-list" class="receitas-grid"></div>
     </section>
 
-    <section id="tab-dashboard" class="tab-panel">
+    <section id="tab-dashboard" class="tab-panel active">
       <div class="toolbar">
         <span>Custo por receita</span>
         <span id="dashboard-total" class="muted"></span>
