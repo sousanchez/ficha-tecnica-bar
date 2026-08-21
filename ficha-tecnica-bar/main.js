@@ -3,6 +3,7 @@
 let state = {
   tab: 'dashboard',
   insumoFiltro: '',
+  insumosSelecionados: new Set(),
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
@@ -109,6 +110,13 @@ function attachGlobalHandlers() {
   });
   document.getElementById('btn-add-insumo').addEventListener('click', addInsumo);
   document.getElementById('btn-detect-volumes').addEventListener('click', autoDetectVolumes);
+  document.getElementById('btn-delete-selecionados').addEventListener('click', deleteInsumosSelecionados);
+  document.getElementById('chk-insumos-all').addEventListener('change', (e) => {
+    const idsVisiveis = getInsumos().filter((r) => r.tipo !== 'producao_interna').map((r) => r.id);
+    if (e.target.checked) idsVisiveis.forEach((id) => state.insumosSelecionados.add(id));
+    else idsVisiveis.forEach((id) => state.insumosSelecionados.delete(id));
+    renderInsumos();
+  });
   document.getElementById('btn-add-producao').addEventListener('click', addProducaoInterna);
   document.getElementById('btn-add-receita').addEventListener('click', addReceita);
   document.getElementById('btn-export-db').addEventListener('click', exportDb);

@@ -32,6 +32,7 @@
       <div class="toolbar">
         <input id="filtro-nome" type="text" placeholder="Buscar insumo...">
         <span id="insumos-count" class="muted"></span>
+        <button id="btn-delete-selecionados" class="btn danger" hidden>Excluir selecionados</button>
         <button id="btn-detect-volumes" class="btn secondary" title="Detecta ml/g no nome dos insumos que ainda estao como 'unidade'">🔍 Detectar volumes</button>
         <button id="btn-add-insumo" class="btn">+ Novo insumo</button>
       </div>
@@ -39,6 +40,7 @@
         <table>
           <thead>
             <tr>
+              <th><input type="checkbox" id="chk-insumos-all" title="Selecionar todos"></th>
               <th>Nome</th>
               <th>Categoria</th>
               <th>Fornecedor</th>

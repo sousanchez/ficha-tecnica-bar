@@ -157,6 +157,7 @@ td.num, th.num { text-align: right; }
 td input, td select { width: 100%; min-width: 90px; }
 td input.num { text-align: right; min-width: 70px; }
 td input.input-nome { min-width: 260px; }
+td input[type="checkbox"] { width: auto; min-width: 0; }
 
 .badge {
   display: inline-block;

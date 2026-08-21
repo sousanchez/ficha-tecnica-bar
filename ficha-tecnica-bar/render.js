@@ -56,10 +56,19 @@ function renderInsumos() {
       }
     : null;
 
+  // Selecao (checkboxes) so faz sentido pros ids ainda visiveis no filtro atual -
+  // sem isso um insumo selecionado e depois escondido pelo filtro fica "preso"
+  // selecionado pra sempre, sem forma de desmarcar.
+  const idsVisiveis = new Set(rows.map((r) => r.id));
+  for (const id of [...state.insumosSelecionados]) {
+    if (!idsVisiveis.has(id)) state.insumosSelecionados.delete(id);
+  }
+
   tbody.innerHTML = rows.map((r) => {
     const estoqueBaixo = r.estoque_minimo > 0 && r.estoque_atual < r.estoque_minimo;
     return `
     <tr>
+      <td><input type="checkbox" class="chk-insumo" data-insumo-id="${r.id}" ${state.insumosSelecionados.has(r.id) ? 'checked' : ''}></td>
       <td><input class="input-nome" data-insumo-id="${r.id}" data-field="nome" value="${escapeHtml(r.nome)}"></td>
       <td><select data-insumo-id="${r.id}" data-field="categoria">${categoriaOptionsHtml(r.categoria)}</select></td>
       <td><input data-insumo-id="${r.id}" data-field="fornecedor" value="${escapeHtml(r.fornecedor || '')}"></td>
@@ -75,6 +84,16 @@ function renderInsumos() {
   `;
   }).join('');
   document.getElementById('insumos-count').textContent = `${rows.length} insumo(s)`;
+
+  tbody.querySelectorAll('.chk-insumo').forEach((chk) => {
+    chk.addEventListener('change', (e) => {
+      const id = Number(e.target.dataset.insumoId);
+      if (e.target.checked) state.insumosSelecionados.add(id);
+      else state.insumosSelecionados.delete(id);
+      atualizarToolbarSelecaoInsumos(rows.length);
+    });
+  });
+  atualizarToolbarSelecaoInsumos(rows.length);
 
   if (focoAnterior) {
     const seletor = `[data-insumo-id="${focoAnterior.insumoId}"][data-field="${focoAnterior.field}"]`;
@@ -105,6 +124,16 @@ function renderInsumos() {
       }, 0);
     });
   });
+}
+
+function atualizarToolbarSelecaoInsumos(totalVisivel) {
+  const n = state.insumosSelecionados.size;
+  const btn = document.getElementById('btn-delete-selecionados');
+  btn.hidden = n === 0;
+  btn.textContent = n > 0 ? `Excluir selecionados (${n})` : 'Excluir selecionados';
+  const chkAll = document.getElementById('chk-insumos-all');
+  chkAll.checked = totalVisivel > 0 && n >= totalVisivel;
+  chkAll.indeterminate = n > 0 && n < totalVisivel;
 }
 
 function renderReceitas() {

@@ -138,6 +138,35 @@ function deleteInsumo(id) {
   run('DELETE FROM insumos WHERE id = ?', [id]);
   renderInsumos();
 }
+function deleteInsumosSelecionados() {
+  const ids = [...state.insumosSelecionados];
+  if (ids.length === 0) return;
+
+  const bloqueados = [];
+  const liberados = [];
+  for (const id of ids) {
+    const usadoReceita = query('SELECT COUNT(*) as c FROM receita_itens WHERE insumo_id = ?', [id])[0].c;
+    const usadoProducao = query('SELECT COUNT(*) as c FROM producao_itens WHERE ingrediente_id = ?', [id])[0].c;
+    if (usadoReceita > 0 || usadoProducao > 0) bloqueados.push(id);
+    else liberados.push(id);
+  }
+
+  if (liberados.length === 0) {
+    alert(`${bloqueados.length} insumo(s) selecionado(s) estão em uso em fichas técnicas/produções internas e não podem ser excluídos. Remova-os de lá primeiro.`);
+    return;
+  }
+  const avisoBloqueados = bloqueados.length > 0
+    ? `\n\n${bloqueados.length} dos selecionados estão em uso e não serão excluídos.`
+    : '';
+  if (!confirm(`Excluir ${liberados.length} insumo(s) selecionado(s)?${avisoBloqueados}`)) return;
+
+  for (const id of liberados) {
+    run('DELETE FROM producao_itens WHERE producao_id = ?', [id]);
+    run('DELETE FROM insumos WHERE id = ?', [id]);
+    state.insumosSelecionados.delete(id);
+  }
+  renderInsumos();
+}
 
 // ---------- Producoes internas (xaropes, espumas, batches...) ----------
 function addProducaoInterna() {
