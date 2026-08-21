@@ -229,6 +229,36 @@ function attachGlobalHandlers() {
     'eventoDraft',
     renderEventoEditorComputados
   );
+
+  document.getElementById('btn-cloud-status').addEventListener('click', () => {
+    document.getElementById('cloud-erro').hidden = true;
+    document.getElementById('cloud-pin-input').value = cloudPin || '';
+    document.getElementById('btn-cloud-desconectar').hidden = !cloudPin;
+    document.getElementById('modal-cloud-overlay').classList.add('active');
+  });
+  document.getElementById('modal-cloud-close').addEventListener('click', () => {
+    document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
+  document.getElementById('modal-cloud-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-cloud-overlay') document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
+  document.getElementById('btn-cloud-conectar').addEventListener('click', async () => {
+    const pin = document.getElementById('cloud-pin-input').value.trim();
+    const erroEl = document.getElementById('cloud-erro');
+    erroEl.hidden = true;
+    if (!pin) return;
+    try {
+      await conectarNuvem(pin);
+      document.getElementById('modal-cloud-overlay').classList.remove('active');
+    } catch (err) {
+      erroEl.textContent = 'PIN incorreto ou sem conexão. Tente de novo.';
+      erroEl.hidden = false;
+    }
+  });
+  document.getElementById('btn-cloud-desconectar').addEventListener('click', () => {
+    desconectarNuvem();
+    document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

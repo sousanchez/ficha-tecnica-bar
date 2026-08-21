@@ -11,6 +11,7 @@
     <header class="app-header">
       <h1>🍸 Ficha Técnica de Bar</h1>
       <div class="header-actions">
+        <button id="btn-cloud-status" class="btn secondary cloud-status cloud-status-off">☁️ Conectar nuvem</button>
         <button id="btn-export-db" class="btn secondary">Exportar banco (.db)</button>
         <button id="btn-import-db" class="btn secondary">Importar banco (.db)</button>
         <input type="file" id="input-import-db" accept=".db" hidden>
@@ -241,9 +242,30 @@
     </div>
   </div>
 
+  <div id="modal-cloud-overlay" class="modal-overlay">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <span class="modal-title-input">Sincronizar com a nuvem</span>
+        <button id="modal-cloud-close" class="icon-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <label>PIN do bar
+          <input id="cloud-pin-input" type="password" inputmode="numeric" placeholder="Ex: 121224">
+        </label>
+        <p class="muted cloud-hint">Conecta este navegador ao banco compartilhado. Use o mesmo PIN em todos os dispositivos - o banco daqui vira o mesmo em todo lugar.</p>
+        <p id="cloud-erro" class="muted cloud-erro" hidden></p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-cloud-desconectar" class="btn danger" hidden>Desconectar</button>
+        <button id="btn-cloud-conectar" class="btn">Conectar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="lib/sql-wasm.js"></script>
   <script src="seed-data.js"></script>
   <script src="db.js"></script>
+  <script src="cloud.js"></script>
   <script src="model.js"></script>
   <script src="render.js"></script>
   <script src="main.js"></script>

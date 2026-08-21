@@ -293,6 +293,12 @@ h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
 .checklist-item:last-child { border-bottom: none; }
 .checklist-item input[type="checkbox"] { margin-right: 6px; }
 
+.cloud-status-ok { color: var(--good); border-color: var(--good); }
+.cloud-status-error { color: var(--bad); border-color: var(--bad); }
+.modal-small { max-width: 380px; }
+.cloud-hint { margin-top: 10px; line-height: 1.4; }
+.cloud-erro { color: var(--bad); margin-top: 8px; }
+
 /* Breakpoint unico (o app era 100% desktop-only ate aqui) - empilha o
    essencial em telas estreitas sem reestruturar a navegacao. A grade de
    Insumos continua rolando na horizontal dentro de .table-wrap por ser uma

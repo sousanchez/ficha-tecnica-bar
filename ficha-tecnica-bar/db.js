@@ -74,13 +74,20 @@ async function init() {
     db.run(SCHEMA_SQL);
     migrateSchema();
   } else {
+    // Navegador/dispositivo novo (sem localStorage): comeca com o mesmo
+    // cardapio ja cadastrado no codigo (insumos + fichas tecnicas), pra ficar
+    // igual em qualquer lugar que o app for aberto pela primeira vez.
     db = new SQL.Database();
     db.run(SCHEMA_SQL);
     seedInsumos();
-    persist();
+    seedProducaoPropria();
+    seedFichasFlorest();
+    seedFichasOlivio();
+    persistLocalOnly();
   }
   attachGlobalHandlers();
   renderAll();
+  initCloudSync();
 }
 
 // Bancos salvos por versoes anteriores do app podem nao ter as colunas novas.
@@ -738,6 +745,10 @@ function seedInsumos() {
 }
 
 function persist() {
+  persistLocalOnly();
+  scheduleCloudPush();
+}
+function persistLocalOnly() {
   try {
     const bytes = db.export();
     localStorage.setItem(LS_KEY, bytesToBase64(bytes));
