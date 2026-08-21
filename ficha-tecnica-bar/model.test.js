@@ -95,18 +95,17 @@ test('cmvIcon: um simbolo por faixa, alinhado com cmvClass', () => {
 });
 
 test('fmtMoedaUnitario: valor abaixo de 1 centavo arredonda pra cima pro minimo (R$0,01)', () => {
-  assert.equal(fmtMoedaUnitario(0.0026), 'R$ 0,01');
-  assert.equal(fmtMoedaUnitario(0.001), 'R$ 0,01');
+  assert.equal(fmtMoedaUnitario(0.0026), 'R$ 0,01');
+  assert.equal(fmtMoedaUnitario(0.001), 'R$ 0,01');
 });
 test('fmtMoedaUnitario: zero continua R$0,00 (nao e "custo positivo pequeno")', () => {
-  assert.equal(fmtMoedaUnitario(0), 'R$ 0,00');
+  assert.equal(fmtMoedaUnitario(0), 'R$ 0,00');
 });
 test('fmtMoedaUnitario: valor >= 1 centavo mostra ate 4 casas quando precisa', () => {
-  assert.equal(fmtMoedaUnitario(0.025), 'R$ 0,025');
-  assert.equal(fmtMoedaUnitario(0.1), 'R$ 0,10');
-  assert.equal(fmtMoedaUnitario(1.5), 'R$ 1,50');
+  assert.equal(fmtMoedaUnitario(0.025), 'R$ 0,025');
+  assert.equal(fmtMoedaUnitario(0.1), 'R$ 0,10');
+  assert.equal(fmtMoedaUnitario(1.5), 'R$ 1,50');
 });
-
 test('ESTAGIOS_EVENTO: 4 estagios na ordem Lead/Proposta/Confirmado/Realizado', () => {
   assert.deepEqual(
     ESTAGIOS_EVENTO.map((e) => e.valor),
