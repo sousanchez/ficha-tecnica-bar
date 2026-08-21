@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS eventos (
   horas REAL DEFAULT 0,
   doses_por_pessoa REAL DEFAULT 0,
   preco_pacote_pessoa REAL DEFAULT 0,
-  ativo INTEGER DEFAULT 1
+  ativo INTEGER DEFAULT 1,
+  estagio TEXT DEFAULT 'lead'
 );
 CREATE TABLE IF NOT EXISTS evento_receitas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
