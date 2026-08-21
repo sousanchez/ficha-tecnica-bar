@@ -97,7 +97,14 @@ function salvarEvento() {
   refreshAll();
 }
 
+function ajustarTopbarHeight() {
+  const h = document.querySelector('.app-topbar').offsetHeight;
+  document.documentElement.style.setProperty('--topbar-h', `${h}px`);
+}
+
 function attachGlobalHandlers() {
+  ajustarTopbarHeight();
+  window.addEventListener('resize', ajustarTopbarHeight);
   document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.tab = btn.dataset.tab;

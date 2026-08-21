@@ -89,6 +89,19 @@ main { padding: 20px 24px 60px; max-width: 1200px; margin: 0 auto; }
   flex-wrap: wrap;
 }
 .toolbar > *:last-child { margin-left: auto; }
+/* Busca + "Excluir selecionados" ficam visiveis rolando as 342 linhas de
+   Insumos, sem precisar voltar ao topo pra concluir uma selecao. --topbar-h
+   e calculada em JS (main.js) pois a altura do header/tabs muda no breakpoint
+   mobile. */
+#tab-insumos .toolbar {
+  position: sticky;
+  top: var(--topbar-h, 97px);
+  z-index: 55;
+  background: var(--bg);
+  padding: 12px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
 
 input, select, textarea {
   background: var(--panel-2);
