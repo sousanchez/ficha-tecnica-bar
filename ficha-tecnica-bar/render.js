@@ -11,6 +11,7 @@ function refreshAll() {
   renderReceitas();
   renderDashboard();
   renderEventos();
+  renderEventosKanban();
   renderProducoes();
   if (state.editingReceitaId) renderReceitaEditorCampos();
   if (state.editingProducaoId) renderProducaoEditorCampos();
@@ -18,12 +19,17 @@ function refreshAll() {
 }
 
 function renderTabs() {
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.tab === state.tab);
   });
   document.querySelectorAll('.tab-panel').forEach((panel) => {
     panel.classList.toggle('active', panel.id === `tab-${state.tab}`);
   });
+  document.querySelectorAll('.eventos-view-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.view === state.eventosView);
+  });
+  document.getElementById('eventos-list').style.display = state.eventosView === 'lista' ? '' : 'none';
+  document.getElementById('eventos-kanban').style.display = state.eventosView === 'kanban' ? '' : 'none';
 }
 
 function categoriaOptionsHtml(valorAtual) {
@@ -173,6 +179,37 @@ function renderEventos() {
       </div>
     `;
   }).join('') || '<p class="muted">Nenhum evento cadastrado ainda.</p>';
+}
+
+function renderEventosKanban() {
+  const eventos = getEventos();
+  const board = document.getElementById('eventos-kanban');
+  board.innerHTML = ESTAGIOS_EVENTO.map((estagio) => {
+    const doEstagio = eventos.filter((e) => e.estagio === estagio.valor);
+    const cardsHtml = doEstagio.map((e) => {
+      const { cmv } = calcIndicadores(e.custoPorPessoa, e.preco_pacote_pessoa);
+      const optionsHtml = ESTAGIOS_EVENTO.map((opt) =>
+        `<option value="${opt.valor}" ${opt.valor === e.estagio ? 'selected' : ''}>${opt.label}</option>`
+      ).join('');
+      return `
+        <div class="receita-card" onclick="openEventoEditor(${e.id})">
+          <div class="receita-card-title">${escapeHtml(e.nome)}</div>
+          <div class="receita-card-row"><span>Convidados</span><strong>${e.convidados}</strong></div>
+          <div class="receita-card-row"><span>Custo/pessoa</span><strong>${fmtMoeda(e.custoPorPessoa)}</strong></div>
+          <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</strong></div>
+          <select class="kanban-card-estagio" onclick="event.stopPropagation()" onchange="updateEventoField(${e.id}, 'estagio', this.value); refreshAll();">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }).join('') || '<p class="muted">Nenhum evento.</p>';
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-title">${estagio.label} (${doEstagio.length})</div>
+        ${cardsHtml}
+      </div>
+    `;
+  }).join('');
 }
 
 function renderProducoes() {
