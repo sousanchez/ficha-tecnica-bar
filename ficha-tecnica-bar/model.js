@@ -287,8 +287,6 @@ function cmvClass(cmv) {
 
 // ---------- Eventos (pacotes) ----------
 const ESTAGIOS_EVENTO = [
-  { valor: 'lead', label: 'Lead' },
-  { valor: 'proposta', label: 'Proposta' },
   { valor: 'confirmado', label: 'Confirmado' },
   { valor: 'realizado', label: 'Realizado' },
 ];

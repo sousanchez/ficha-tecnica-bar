@@ -106,13 +106,13 @@ test('fmtMoedaUnitario: valor >= 1 centavo mostra ate 4 casas quando precisa', (
   assert.equal(fmtMoedaUnitario(0.1), 'R$ 0,10');
   assert.equal(fmtMoedaUnitario(1.5), 'R$ 1,50');
 });
-test('ESTAGIOS_EVENTO: 4 estagios na ordem Lead/Proposta/Confirmado/Realizado', () => {
+test('ESTAGIOS_EVENTO: 2 estagios na ordem Confirmado/Realizado', () => {
   assert.deepEqual(
     ESTAGIOS_EVENTO.map((e) => e.valor),
-    ['lead', 'proposta', 'confirmado', 'realizado'],
+    ['confirmado', 'realizado'],
   );
   assert.deepEqual(
     ESTAGIOS_EVENTO.map((e) => e.label),
-    ['Lead', 'Proposta', 'Confirmado', 'Realizado'],
+    ['Confirmado', 'Realizado'],
   );
 });

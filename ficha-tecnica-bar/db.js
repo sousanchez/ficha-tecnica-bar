@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS eventos (
   doses_por_pessoa REAL DEFAULT 0,
   preco_pacote_pessoa REAL DEFAULT 0,
   ativo INTEGER DEFAULT 1,
-  estagio TEXT DEFAULT 'lead'
+  estagio TEXT DEFAULT 'confirmado'
 );
 CREATE TABLE IF NOT EXISTS evento_receitas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,12 +107,14 @@ function migrateSchema() {
   addColIfMissing('receitas', "rendimento TEXT DEFAULT ''");
   addColIfMissing('receitas', 'vendas_periodo REAL DEFAULT 0');
   addColIfMissing('receitas', 'markup_alvo REAL DEFAULT 0');
-  addColIfMissing('eventos', "estagio TEXT DEFAULT 'lead'");
+  addColIfMissing('eventos', "estagio TEXT DEFAULT 'confirmado'");
   db.run("UPDATE insumos SET tipo = 'comprado' WHERE tipo IS NULL");
   db.run('UPDATE insumos SET fator_correcao = 1 WHERE fator_correcao IS NULL');
   db.run('UPDATE insumos SET estoque_minimo = 0 WHERE estoque_minimo IS NULL');
   db.run('UPDATE insumos SET estoque_atual = 0 WHERE estoque_atual IS NULL');
-  db.run("UPDATE eventos SET estagio = 'lead' WHERE estagio IS NULL");
+  // Kanban reduzido de 4 para 2 estagios (Confirmado/Realizado) - eventos que
+  // ficaram em lead/proposta (estagios removidos) viram Confirmado.
+  db.run("UPDATE eventos SET estagio = 'confirmado' WHERE estagio IS NULL OR estagio NOT IN ('confirmado', 'realizado')");
   seedProducaoPropria();
   seedFichasFlorest();
   seedFichasOlivio();
