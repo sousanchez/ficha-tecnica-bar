@@ -363,6 +363,29 @@ function calcTotaisEvento(custoPorPessoa, precoPacotePessoa, convidados) {
   return { custoTotal, receitaTotal, lucroTotal: receitaTotal - custoTotal };
 }
 
+// ---------- Dashboard: receita mensal (eventos realizados) ----------
+// Soma preco_pacote_pessoa x convidados por mes (YYYY-MM da data do evento).
+// Funcao pura - recebe a lista de eventos ja filtrada pelo chamador (so
+// 'realizado'), mesmo padrao de calcCustoEventoPessoa/computeMenuEngineering.
+function calcReceitaPorMes(eventos) {
+  const porMes = {};
+  eventos.forEach((e) => {
+    if (!e.data) return; // sem data, nao da pra agrupar por mes
+    const mes = e.data.slice(0, 7); // 'YYYY-MM'
+    const receita = e.preco_pacote_pessoa * e.convidados;
+    porMes[mes] = (porMes[mes] || 0) + receita;
+  });
+  return Object.keys(porMes).sort().map((mes) => ({ mes, receita: porMes[mes] }));
+}
+
+const NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+// 'YYYY-MM' -> 'Mes/AAAA' (pt-BR, sem lib externa - mesma restricao do resto do app)
+function fmtMesAno(mesStr) {
+  const [ano, mes] = mesStr.split('-');
+  return `${NOMES_MES[parseInt(mes, 10) - 1]}/${ano}`;
+}
+
 // ---------- Badge de CMV: status nao pode depender so de cor (daltonismo) ----------
 function cmvIcon(cmv) {
   if (cmv === null) return '';
@@ -377,5 +400,6 @@ if (typeof module !== 'undefined') {
   module.exports = {
     calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
     calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
+    calcReceitaPorMes, fmtMesAno,
   };
 }

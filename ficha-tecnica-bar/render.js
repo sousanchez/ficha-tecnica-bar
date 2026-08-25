@@ -163,6 +163,16 @@ function renderDashboard() {
       </tr>
     `).join('') || '<tr><td colspan="2" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
   document.getElementById('dashboard-total').textContent = `${receitas.length} ficha(s) tecnica(s)`;
+
+  const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
+  const receitaPorMes = calcReceitaPorMes(eventosRealizados);
+  const tbodyMensal = document.getElementById('dashboard-receita-mensal-tbody');
+  tbodyMensal.innerHTML = receitaPorMes.map((r) => `
+      <tr>
+        <td>${fmtMesAno(r.mes)}</td>
+        <td class="num">${fmtMoeda(r.receita)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="2" class="muted">Nenhum evento realizado ainda.</td></tr>';
 }
 
 function renderEventos() {

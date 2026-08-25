@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const {
   calcIndicadores, cmvClass, calcCustoEventoPessoa,
   calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, fmtMoedaUnitario, ESTAGIOS_EVENTO,
+  calcReceitaPorMes, fmtMesAno,
 } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
@@ -115,4 +116,42 @@ test('ESTAGIOS_EVENTO: 2 estagios na ordem Confirmado/Realizado', () => {
     ESTAGIOS_EVENTO.map((e) => e.label),
     ['Confirmado', 'Realizado'],
   );
+});
+
+test('calcReceitaPorMes: lista vazia -> []', () => {
+  assert.deepEqual(calcReceitaPorMes([]), []);
+});
+test('calcReceitaPorMes: um evento com data -> uma linha', () => {
+  const eventos = [{ data: '2026-08-10', preco_pacote_pessoa: 50, convidados: 10 }];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 500 }]);
+});
+test('calcReceitaPorMes: dois eventos no mesmo mes -> soma na mesma linha', () => {
+  const eventos = [
+    { data: '2026-08-01', preco_pacote_pessoa: 50, convidados: 10 },
+    { data: '2026-08-20', preco_pacote_pessoa: 30, convidados: 5 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 650 }]);
+});
+test('calcReceitaPorMes: eventos em meses diferentes -> duas linhas ordenadas', () => {
+  const eventos = [
+    { data: '2026-09-01', preco_pacote_pessoa: 20, convidados: 10 },
+    { data: '2026-08-01', preco_pacote_pessoa: 50, convidados: 10 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [
+    { mes: '2026-08', receita: 500 },
+    { mes: '2026-09', receita: 200 },
+  ]);
+});
+test('calcReceitaPorMes: evento sem data -> ignorado', () => {
+  const eventos = [
+    { data: '', preco_pacote_pessoa: 50, convidados: 10 },
+    { data: '2026-08-01', preco_pacote_pessoa: 30, convidados: 5 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 150 }]);
+});
+
+test('fmtMesAno: converte YYYY-MM pro nome do mes em pt-BR', () => {
+  assert.equal(fmtMesAno('2026-08'), 'Agosto/2026');
+  assert.equal(fmtMesAno('2026-01'), 'Janeiro/2026');
+  assert.equal(fmtMesAno('2026-12'), 'Dezembro/2026');
 });
