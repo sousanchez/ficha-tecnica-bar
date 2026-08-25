@@ -156,12 +156,16 @@ function renderReceitas() {
 function renderDashboard() {
   const receitas = getReceitas();
   const tbody = document.getElementById('dashboard-tbody');
-  tbody.innerHTML = receitas.map((r) => `
+  tbody.innerHTML = receitas.map((r) => {
+    const { cmv } = calcIndicadores(r.custo, r.preco_venda);
+    return `
       <tr>
         <td>${escapeHtml(r.nome)}</td>
         <td class="num">${fmtMoeda(r.custo)}</td>
+        <td class="num"><span class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</span></td>
       </tr>
-    `).join('') || '<tr><td colspan="2" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
+    `;
+  }).join('') || '<tr><td colspan="3" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
   document.getElementById('dashboard-total').textContent = `${receitas.length} ficha(s) tecnica(s)`;
 
   const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
@@ -363,7 +367,7 @@ function abrirRascunhoDaReceita(id) {
   const r = getReceita(id);
   state.receitaDraft = {
     nome: r.nome, categoria: r.categoria ?? '', copo: r.copo ?? '', guarnicao: r.guarnicao ?? '', modo_preparo: r.modo_preparo ?? '',
-    tempo_preparo: r.tempo_preparo ?? '', rendimento: r.rendimento ?? '',
+    tempo_preparo: r.tempo_preparo ?? '', rendimento: r.rendimento ?? '', preco_venda: r.preco_venda ?? 0,
     itens: r.itens.map((it) => ({ id: it.id, tempId: null, insumo_id: it.insumo_id, quantidade: it.quantidade, nome: it.nome, unidade_compra: it.unidade_compra, preco_unitario: it.preco_unitario })),
   };
   state.receitaDraftSalvo = JSON.parse(JSON.stringify(state.receitaDraft));
@@ -396,6 +400,7 @@ function renderReceitaEditorCampos() {
   document.getElementById('re-modo-preparo').value = d.modo_preparo || '';
   document.getElementById('re-tempo-preparo').value = d.tempo_preparo || '';
   document.getElementById('re-rendimento').value = d.rendimento || '';
+  document.getElementById('re-preco-venda').value = d.preco_venda;
 
   const select = document.getElementById('re-add-insumo');
   const insumos = getInsumosParaSelect();
@@ -409,6 +414,13 @@ function renderReceitaEditorComputados() {
   if (!d) return;
   const custo = calcCustoDraftItens(d.itens);
   document.getElementById('re-custo').textContent = fmtMoeda(custo);
+
+  const { cmv, markup, margem } = calcIndicadores(custo, d.preco_venda);
+  const cmvEl = document.getElementById('re-cmv');
+  cmvEl.textContent = cmvIcon(cmv) + fmtPct(cmv);
+  cmvEl.className = 'badge ' + cmvClass(cmv);
+  document.getElementById('re-markup').textContent = markup ? markup.toFixed(2) + 'x' : '-';
+  document.getElementById('re-margem').textContent = fmtMoeda(margem);
 
   renderItemsTable(
     document.getElementById('re-itens-tbody'),

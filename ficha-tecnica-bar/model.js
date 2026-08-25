@@ -242,7 +242,7 @@ function deleteReceita(id) {
   refreshAll();
 }
 function updateReceitaField(id, field, value) {
-  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'tempo_preparo', 'rendimento'];
+  const allowed = ['nome', 'categoria', 'modo_preparo', 'copo', 'guarnicao', 'tempo_preparo', 'rendimento', 'preco_venda'];
   setField('receitas', allowed, id, field, value);
 }
 function addReceitaItem(receitaId, insumoId, quantidade) {

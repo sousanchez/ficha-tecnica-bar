@@ -41,7 +41,7 @@ function bindDraftFormFields(ids, fieldMap, numericFields, draftKey, onChange) {
 function salvarReceita() {
   const id = state.editingReceitaId;
   const d = state.receitaDraft;
-  const allowed = ['nome', 'categoria', 'copo', 'guarnicao', 'modo_preparo', 'tempo_preparo', 'rendimento'];
+  const allowed = ['nome', 'categoria', 'copo', 'guarnicao', 'modo_preparo', 'tempo_preparo', 'rendimento', 'preco_venda'];
   for (const field of allowed) updateReceitaField(id, field, d[field]);
 
   const itensBanco = query('SELECT id FROM receita_itens WHERE receita_id = ?', [id]);
@@ -197,12 +197,13 @@ function attachGlobalHandlers() {
   });
 
   bindDraftFormFields(
-    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-tempo-preparo', 're-rendimento'],
+    ['re-nome', 're-categoria', 're-copo', 're-guarnicao', 're-modo-preparo', 're-tempo-preparo', 're-rendimento', 're-preco-venda'],
     {
       're-nome': 'nome', 're-categoria': 'categoria', 're-copo': 'copo', 're-guarnicao': 'guarnicao',
       're-modo-preparo': 'modo_preparo', 're-tempo-preparo': 'tempo_preparo', 're-rendimento': 'rendimento',
+      're-preco-venda': 'preco_venda',
     },
-    [],
+    ['preco_venda'],
     'receitaDraft',
     renderReceitaEditorComputados
   );
