@@ -394,12 +394,28 @@ function cmvIcon(cmv) {
   return '✕ ';
 }
 
+// ---------- Dashboard: tiles de resumo ----------
+// CMV medio entre as receitas que tem preco de venda definido (>0).
+// Receitas sem preco (cmv null) ficam de fora da media, nao contam como 0.
+function calcCmvMedio(receitas) {
+  const comPreco = receitas
+    .map((r) => calcIndicadores(r.custo, r.preco_venda).cmv)
+    .filter((cmv) => cmv !== null);
+  if (comPreco.length === 0) return null;
+  return comPreco.reduce((s, v) => s + v, 0) / comPreco.length;
+}
+
+// Quantas receitas ainda nao tem preco de venda definido.
+function calcReceitasSemPreco(receitas) {
+  return receitas.filter((r) => !r.preco_venda || r.preco_venda <= 0).length;
+}
+
 // Exporta as funcoes puras pro test runner (Node). No browser `module` nao
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
   module.exports = {
     calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
     calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
-    calcReceitaPorMes, fmtMesAno,
+    calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco,
   };
 }

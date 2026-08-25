@@ -159,7 +159,9 @@ function renderDashboard() {
   tbody.innerHTML = receitas.map((r) => {
     const { cmv } = calcIndicadores(r.custo, r.preco_venda);
     return `
-      <tr>
+      <tr class="row-clickable" tabindex="0" role="button"
+          onclick="openReceitaEditor(${r.id})"
+          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReceitaEditor(${r.id})}">
         <td>${escapeHtml(r.nome)}</td>
         <td class="num">${fmtMoeda(r.custo)}</td>
         <td class="num"><span class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</span></td>
@@ -177,6 +179,14 @@ function renderDashboard() {
         <td class="num">${fmtMoeda(r.receita)}</td>
       </tr>
     `).join('') || '<tr><td colspan="2" class="muted">Nenhum evento realizado ainda.</td></tr>';
+
+  document.getElementById('dash-custo-total').textContent = fmtMoeda(receitas.reduce((s, r) => s + r.custo, 0));
+  const cmvMedio = calcCmvMedio(receitas);
+  const cmvMedioEl = document.getElementById('dash-cmv-medio');
+  cmvMedioEl.textContent = fmtPct(cmvMedio);
+  cmvMedioEl.className = 'badge ' + cmvClass(cmvMedio);
+  document.getElementById('dash-sem-preco').textContent = calcReceitasSemPreco(receitas);
+  document.getElementById('dash-receita-realizada').textContent = fmtMoeda(receitaPorMes.reduce((s, r) => s + r.receita, 0));
 }
 
 function renderEventos() {

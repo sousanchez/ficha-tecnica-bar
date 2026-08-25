@@ -198,6 +198,13 @@ td input[type="checkbox"] { width: auto; min-width: 0; }
   transition: border-color .15s;
 }
 .receita-card:hover { border-color: var(--accent); }
+
+/* Linhas de tabela clicaveis (ex: "Custo por receita" no Dashboard) - mesmo
+   hover-border do .receita-card, mais :focus-visible porque esta e a
+   primeira interacao por teclado do app (tabindex/role="button" no <tr>). */
+tr.row-clickable { cursor: pointer; }
+tr.row-clickable:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+tr.row-clickable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .receita-card-title { font-weight: 700; margin-bottom: 8px; }
 .receita-card-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; color: var(--muted); }
 .receita-card-row strong { color: var(--text); }

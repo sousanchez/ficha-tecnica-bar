@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const {
   calcIndicadores, cmvClass, calcCustoEventoPessoa,
   calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, fmtMoedaUnitario, ESTAGIOS_EVENTO,
-  calcReceitaPorMes, fmtMesAno,
+  calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco,
 } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
@@ -154,4 +154,47 @@ test('fmtMesAno: converte YYYY-MM pro nome do mes em pt-BR', () => {
   assert.equal(fmtMesAno('2026-08'), 'Agosto/2026');
   assert.equal(fmtMesAno('2026-01'), 'Janeiro/2026');
   assert.equal(fmtMesAno('2026-12'), 'Dezembro/2026');
+});
+
+test('calcCmvMedio: lista vazia -> null', () => {
+  assert.equal(calcCmvMedio([]), null);
+});
+test('calcCmvMedio: nenhuma receita com preco definido -> null (nao conta como 0)', () => {
+  const receitas = [
+    { custo: 10, preco_venda: 0 },
+    { custo: 20, preco_venda: 0 },
+  ];
+  assert.equal(calcCmvMedio(receitas), null);
+});
+test('calcCmvMedio: mix de com/sem preco -> media so das precificadas', () => {
+  const receitas = [
+    { custo: 10, preco_venda: 40 }, // cmv 25
+    { custo: 20, preco_venda: 0 }, // sem preco, fora da media
+    { custo: 15, preco_venda: 30 }, // cmv 50
+  ];
+  // media de [25, 50] = 37.5
+  assert.equal(calcCmvMedio(receitas), 37.5);
+});
+test('calcCmvMedio: todas com preco -> media simples', () => {
+  const receitas = [
+    { custo: 10, preco_venda: 40 }, // cmv 25
+    { custo: 20, preco_venda: 40 }, // cmv 50
+  ];
+  assert.equal(calcCmvMedio(receitas), 37.5);
+});
+
+test('calcReceitasSemPreco: lista vazia -> 0', () => {
+  assert.equal(calcReceitasSemPreco([]), 0);
+});
+test('calcReceitasSemPreco: todas sem preco -> N', () => {
+  const receitas = [{ preco_venda: 0 }, { preco_venda: null }];
+  assert.equal(calcReceitasSemPreco(receitas), 2);
+});
+test('calcReceitasSemPreco: mix -> conta so as sem preco', () => {
+  const receitas = [{ preco_venda: 40 }, { preco_venda: 0 }, { preco_venda: 20 }];
+  assert.equal(calcReceitasSemPreco(receitas), 1);
+});
+test('calcReceitasSemPreco: preco_venda negativo conta como sem preco', () => {
+  const receitas = [{ preco_venda: -5 }, { preco_venda: 30 }];
+  assert.equal(calcReceitasSemPreco(receitas), 1);
 });
