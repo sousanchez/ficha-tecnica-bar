@@ -385,6 +385,14 @@ function contarEventosSemData(eventos) {
   return eventos.filter((e) => !e.data).length;
 }
 
+// Ranking de eventos por lucro total, decrescente. Recebe a lista ja
+// filtrada pelo chamador (so 'realizado'), mesmo padrao de calcReceitaPorMes.
+function calcRankingEventos(eventos) {
+  return eventos
+    .map((e) => ({ nome: e.nome, ...calcTotaisEvento(e.custoPorPessoa, e.preco_pacote_pessoa, e.convidados) }))
+    .sort((a, b) => b.lucroTotal - a.lucroTotal);
+}
+
 const NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 // 'YYYY-MM' -> 'Mes/AAAA' (pt-BR, sem lib externa - mesma restricao do resto do app)
@@ -424,5 +432,6 @@ if (typeof module !== 'undefined') {
     calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
     calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
     calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco, contarEventosSemData,
+    calcRankingEventos,
   };
 }

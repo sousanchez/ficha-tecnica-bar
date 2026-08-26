@@ -385,6 +385,8 @@ h2 { font-size: 14px; margin: 18px 0 8px; color: var(--muted); text-transform: u
 .modal-small { max-width: 380px; }
 .cloud-hint { margin-top: 10px; line-height: 1.4; }
 .cloud-erro { color: var(--bad); margin-top: 8px; }
+.lucro-pos { color: var(--good); }
+.lucro-neg { color: var(--bad); }
 
 /* Breakpoint unico (o app era 100% desktop-only ate aqui) - empilha o
    essencial em telas estreitas sem reestruturar a navegacao. A grade de

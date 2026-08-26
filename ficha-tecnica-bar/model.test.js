@@ -4,6 +4,7 @@ const {
   calcIndicadores, cmvClass, calcCustoEventoPessoa,
   calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, fmtMoedaUnitario, ESTAGIOS_EVENTO,
   calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco, contarEventosSemData,
+  calcRankingEventos,
 } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
@@ -213,4 +214,39 @@ test('contarEventosSemData: todos sem data -> tamanho da lista', () => {
 test('calcReceitasSemPreco: preco_venda negativo conta como sem preco', () => {
   const receitas = [{ preco_venda: -5 }, { preco_venda: 30 }];
   assert.equal(calcReceitasSemPreco(receitas), 1);
+});
+
+test('calcRankingEventos: lista vazia -> []', () => {
+  assert.deepEqual(calcRankingEventos([]), []);
+});
+test('calcRankingEventos: um evento -> uma linha com receita/custo/lucro', () => {
+  const eventos = [{ nome: 'Casamento A', custoPorPessoa: 10, preco_pacote_pessoa: 25, convidados: 100 }];
+  assert.deepEqual(calcRankingEventos(eventos), [
+    { nome: 'Casamento A', custoTotal: 1000, receitaTotal: 2500, lucroTotal: 1500 },
+  ]);
+});
+test('calcRankingEventos: dois eventos -> ordena por lucro decrescente', () => {
+  const eventos = [
+    { nome: 'Evento menor lucro', custoPorPessoa: 10, preco_pacote_pessoa: 20, convidados: 100 }, // lucro 1000
+    { nome: 'Evento maior lucro', custoPorPessoa: 10, preco_pacote_pessoa: 30, convidados: 100 }, // lucro 2000
+  ];
+  assert.deepEqual(
+    calcRankingEventos(eventos).map((e) => e.nome),
+    ['Evento maior lucro', 'Evento menor lucro'],
+  );
+});
+test('calcRankingEventos: evento com custo maior que receita -> lucro negativo, sort continua correto', () => {
+  const eventos = [
+    { nome: 'Evento no prejuizo', custoPorPessoa: 30, preco_pacote_pessoa: 20, convidados: 100 }, // lucro -1000
+    { nome: 'Evento no lucro', custoPorPessoa: 10, preco_pacote_pessoa: 20, convidados: 100 }, // lucro 1000
+  ];
+  const ranking = calcRankingEventos(eventos);
+  assert.deepEqual(ranking.map((e) => e.nome), ['Evento no lucro', 'Evento no prejuizo']);
+  assert.equal(ranking[1].lucroTotal, -1000);
+});
+test('calcRankingEventos: evento sem receitas vinculadas (custoPorPessoa 0) -> lucro = receita total', () => {
+  const eventos = [{ nome: 'Sem drinks', custoPorPessoa: 0, preco_pacote_pessoa: 50, convidados: 20 }];
+  const ranking = calcRankingEventos(eventos);
+  assert.equal(ranking[0].custoTotal, 0);
+  assert.equal(ranking[0].lucroTotal, 1000);
 });

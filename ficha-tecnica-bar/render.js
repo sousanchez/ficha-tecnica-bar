@@ -235,6 +235,17 @@ function renderDashboard() {
   document.getElementById('dash-sem-preco').textContent = calcReceitasSemPreco(receitas);
   document.getElementById('dash-sem-preco-tile').classList.toggle('ativo', state.dashboardFiltroSemPreco);
   document.getElementById('dash-receita-realizada').textContent = fmtMoeda(receitaPorMes.reduce((s, r) => s + r.receita, 0));
+
+  const rankingEventos = calcRankingEventos(eventosRealizados);
+  const tbodyRanking = document.getElementById('dashboard-ranking-eventos-tbody');
+  tbodyRanking.innerHTML = rankingEventos.map((e) => `
+      <tr>
+        <td>${escapeHtml(e.nome)}</td>
+        <td class="num">${fmtMoeda(e.receitaTotal)}</td>
+        <td class="num">${fmtMoeda(e.custoTotal)}</td>
+        <td class="num ${e.lucroTotal >= 0 ? 'lucro-pos' : 'lucro-neg'}">${fmtMoeda(e.lucroTotal)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="4" class="muted">Nenhum evento realizado ainda.</td></tr>';
 }
 
 function renderEventos() {
