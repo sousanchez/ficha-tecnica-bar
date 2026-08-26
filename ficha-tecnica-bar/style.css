@@ -163,10 +163,32 @@ input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent-2); 
   max-height: calc(100vh - 190px);
   overflow-y: auto;
 }
+/* Mesmo padrao acima, so pra "Custo por receita" (195+ linhas). O Dashboard
+   tem a linha ".indicadores" (~78px com margin-top) mais um ".toolbar" sem
+   padding extra (~27px) acima desta tabela - a mais que o Insumos tem antes
+   da sua propria tabela - por isso o N e maior que os 190px do Insumos. */
+#dashboard-custo-wrap {
+  max-height: calc(100vh - 270px);
+  overflow-y: auto;
+}
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
 th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
 td.num, th.num { text-align: right; }
+/* Headers sortaveis das tabelas do Dashboard - <button> real dentro do <th>
+   pra acessibilidade de teclado vir de graca do elemento nativo. */
+.th-sort {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+.th-sort::after { content: ''; margin-left: 4px; color: var(--accent); }
+.th-sort.sort-asc::after { content: '▲'; }
+.th-sort.sort-desc::after { content: '▼'; }
 td input, td select { width: 100%; min-width: 90px; }
 td input.num { text-align: right; min-width: 70px; }
 td input.input-nome { min-width: 260px; }

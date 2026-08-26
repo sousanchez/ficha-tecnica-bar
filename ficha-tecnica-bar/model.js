@@ -378,6 +378,13 @@ function calcReceitaPorMes(eventos) {
   return Object.keys(porMes).sort().map((mes) => ({ mes, receita: porMes[mes] }));
 }
 
+// Quantos eventos da lista passada nao tem data preenchida.
+// Espera a lista ja filtrada pelo chamador (mesmo padrao de calcReceitaPorMes:
+// recebe so 'realizado', nao filtra estagio aqui).
+function contarEventosSemData(eventos) {
+  return eventos.filter((e) => !e.data).length;
+}
+
 const NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 // 'YYYY-MM' -> 'Mes/AAAA' (pt-BR, sem lib externa - mesma restricao do resto do app)
@@ -416,6 +423,6 @@ if (typeof module !== 'undefined') {
   module.exports = {
     calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
     calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
-    calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco,
+    calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco, contarEventosSemData,
   };
 }

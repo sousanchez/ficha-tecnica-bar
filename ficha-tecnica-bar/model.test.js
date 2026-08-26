@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const {
   calcIndicadores, cmvClass, calcCustoEventoPessoa,
   calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, fmtMoedaUnitario, ESTAGIOS_EVENTO,
-  calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco,
+  calcReceitaPorMes, fmtMesAno, calcCmvMedio, calcReceitasSemPreco, contarEventosSemData,
 } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
@@ -194,6 +194,22 @@ test('calcReceitasSemPreco: mix -> conta so as sem preco', () => {
   const receitas = [{ preco_venda: 40 }, { preco_venda: 0 }, { preco_venda: 20 }];
   assert.equal(calcReceitasSemPreco(receitas), 1);
 });
+test('contarEventosSemData: lista vazia -> 0', () => {
+  assert.equal(contarEventosSemData([]), 0);
+});
+test('contarEventosSemData: nenhum sem data -> 0', () => {
+  const eventos = [{ data: '2026-08-01' }, { data: '2026-09-15' }];
+  assert.equal(contarEventosSemData(eventos), 0);
+});
+test('contarEventosSemData: mix -> conta so os sem data', () => {
+  const eventos = [{ data: '2026-08-01' }, { data: '' }, { data: null }, { data: '2026-09-15' }];
+  assert.equal(contarEventosSemData(eventos), 2);
+});
+test('contarEventosSemData: todos sem data -> tamanho da lista', () => {
+  const eventos = [{ data: '' }, { data: null }];
+  assert.equal(contarEventosSemData(eventos), 2);
+});
+
 test('calcReceitasSemPreco: preco_venda negativo conta como sem preco', () => {
   const receitas = [{ preco_venda: -5 }, { preco_venda: 30 }];
   assert.equal(calcReceitasSemPreco(receitas), 1);

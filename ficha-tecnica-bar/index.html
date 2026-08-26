@@ -78,13 +78,13 @@
         <span>Custo por receita</span>
         <span id="dashboard-total" class="muted"></span>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap" id="dashboard-custo-wrap">
         <table>
           <thead>
             <tr>
-              <th>Receita</th>
-              <th>Custo</th>
-              <th>CMV</th>
+              <th><button class="th-sort" data-table="custo" data-field="nome">Receita</button></th>
+              <th class="num"><button class="th-sort" data-table="custo" data-field="custo">Custo</button></th>
+              <th class="num"><button class="th-sort" data-table="custo" data-field="cmv">CMV</button></th>
             </tr>
           </thead>
           <tbody id="dashboard-tbody"></tbody>
@@ -98,13 +98,14 @@
         <table>
           <thead>
             <tr>
-              <th>Mês</th>
-              <th>Receita</th>
+              <th><button class="th-sort" data-table="mensal" data-field="mes">Mês</button></th>
+              <th class="num"><button class="th-sort" data-table="mensal" data-field="receita">Receita</button></th>
             </tr>
           </thead>
           <tbody id="dashboard-receita-mensal-tbody"></tbody>
         </table>
       </div>
+      <p id="dashboard-aviso-sem-data" class="muted" style="display:none;"></p>
     </section>
 
     <section id="tab-eventos" class="tab-panel">

@@ -153,18 +153,41 @@ function renderReceitas() {
     `).join('') || '<p class="muted">Nenhuma ficha tecnica cadastrada ainda.</p>';
 }
 
+// Compara dois valores pro sort das tabelas do Dashboard - nulo (CMV de
+// receita sem preco) sempre por ultimo, nas duas direcoes.
+function compararParaSort(a, b, dir) {
+  if (a === null && b === null) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  if (a < b) return dir === 'asc' ? -1 : 1;
+  if (a > b) return dir === 'asc' ? 1 : -1;
+  return 0;
+}
+
+// Marca o header sortavel ativo de uma tabela do Dashboard com a seta de
+// direcao (CSS .sort-asc/.sort-desc) e limpa os demais.
+function atualizarSetaSort(tabela, sort) {
+  document.querySelectorAll(`.th-sort[data-table="${tabela}"]`).forEach((btn) => {
+    btn.classList.remove('sort-asc', 'sort-desc');
+    if (btn.dataset.field === sort.field) btn.classList.add(sort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+
 function renderDashboard() {
-  const receitas = getReceitas();
+  const receitas = getReceitas().map((r) => ({ ...r, cmv: calcIndicadores(r.custo, r.preco_venda).cmv }));
+  const sortCusto = state.dashboardSortCusto;
+  receitas.sort((a, b) => compararParaSort(a[sortCusto.field], b[sortCusto.field], sortCusto.dir));
+  atualizarSetaSort('custo', sortCusto);
+
   const tbody = document.getElementById('dashboard-tbody');
   tbody.innerHTML = receitas.map((r) => {
-    const { cmv } = calcIndicadores(r.custo, r.preco_venda);
     return `
       <tr class="row-clickable" tabindex="0" role="button"
           onclick="openReceitaEditor(${r.id})"
           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReceitaEditor(${r.id})}">
         <td>${escapeHtml(r.nome)}</td>
         <td class="num">${fmtMoeda(r.custo)}</td>
-        <td class="num"><span class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</span></td>
+        <td class="num"><span class="badge ${cmvClass(r.cmv)}">${cmvIcon(r.cmv)}${fmtPct(r.cmv)}</span></td>
       </tr>
     `;
   }).join('') || '<tr><td colspan="3" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
@@ -172,6 +195,10 @@ function renderDashboard() {
 
   const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
   const receitaPorMes = calcReceitaPorMes(eventosRealizados);
+  const sortMensal = state.dashboardSortMensal;
+  receitaPorMes.sort((a, b) => compararParaSort(a[sortMensal.field], b[sortMensal.field], sortMensal.dir));
+  atualizarSetaSort('mensal', sortMensal);
+
   const tbodyMensal = document.getElementById('dashboard-receita-mensal-tbody');
   tbodyMensal.innerHTML = receitaPorMes.map((r) => `
       <tr>
@@ -179,6 +206,15 @@ function renderDashboard() {
         <td class="num">${fmtMoeda(r.receita)}</td>
       </tr>
     `).join('') || '<tr><td colspan="2" class="muted">Nenhum evento realizado ainda.</td></tr>';
+
+  const avisoEl = document.getElementById('dashboard-aviso-sem-data');
+  const semData = contarEventosSemData(eventosRealizados);
+  if (semData > 0) {
+    avisoEl.textContent = `${semData} evento(s) realizado(s) sem data, não incluído(s) na soma.`;
+    avisoEl.style.display = '';
+  } else {
+    avisoEl.style.display = 'none';
+  }
 
   document.getElementById('dash-custo-total').textContent = fmtMoeda(receitas.reduce((s, r) => s + r.custo, 0));
   const cmvMedio = calcCmvMedio(receitas);

@@ -5,6 +5,8 @@ let state = {
   insumoFiltro: '',
   insumosSelecionados: new Set(),
   eventosView: 'lista',
+  dashboardSortCusto: { field: 'nome', dir: 'asc' },
+  dashboardSortMensal: { field: 'mes', dir: 'asc' },
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
@@ -116,6 +118,15 @@ function attachGlobalHandlers() {
     btn.addEventListener('click', () => {
       state.eventosView = btn.dataset.view;
       renderTabs();
+    });
+  });
+  document.querySelectorAll('.th-sort').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.table === 'custo' ? 'dashboardSortCusto' : 'dashboardSortMensal';
+      const sort = state[key];
+      if (sort.field === btn.dataset.field) sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+      else { sort.field = btn.dataset.field; sort.dir = 'asc'; }
+      renderDashboard();
     });
   });
   document.getElementById('filtro-nome').addEventListener('input', (e) => {
