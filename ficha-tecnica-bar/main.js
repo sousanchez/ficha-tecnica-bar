@@ -1,8 +1,10 @@
 // Estado global e conexao dos elementos da UI aos handlers de dados/render
 
 let state = {
-  tab: 'insumos',
+  tab: 'dashboard',
   insumoFiltro: '',
+  insumosSelecionados: new Set(),
+  eventosView: 'lista',
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
@@ -96,10 +98,23 @@ function salvarEvento() {
   refreshAll();
 }
 
+function ajustarTopbarHeight() {
+  const h = document.querySelector('.app-topbar').offsetHeight;
+  document.documentElement.style.setProperty('--topbar-h', `${h}px`);
+}
+
 function attachGlobalHandlers() {
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  ajustarTopbarHeight();
+  window.addEventListener('resize', ajustarTopbarHeight);
+  document.querySelectorAll('.tab-btn[data-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.tab = btn.dataset.tab;
+      renderTabs();
+    });
+  });
+  document.querySelectorAll('.eventos-view-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.eventosView = btn.dataset.view;
       renderTabs();
     });
   });
@@ -109,6 +124,13 @@ function attachGlobalHandlers() {
   });
   document.getElementById('btn-add-insumo').addEventListener('click', addInsumo);
   document.getElementById('btn-detect-volumes').addEventListener('click', autoDetectVolumes);
+  document.getElementById('btn-delete-selecionados').addEventListener('click', deleteInsumosSelecionados);
+  document.getElementById('chk-insumos-all').addEventListener('change', (e) => {
+    const idsVisiveis = getInsumos().filter((r) => r.tipo !== 'producao_interna').map((r) => r.id);
+    if (e.target.checked) idsVisiveis.forEach((id) => state.insumosSelecionados.add(id));
+    else idsVisiveis.forEach((id) => state.insumosSelecionados.delete(id));
+    renderInsumos();
+  });
   document.getElementById('btn-add-producao').addEventListener('click', addProducaoInterna);
   document.getElementById('btn-add-receita').addEventListener('click', addReceita);
   document.getElementById('btn-export-db').addEventListener('click', exportDb);
@@ -229,6 +251,36 @@ function attachGlobalHandlers() {
     'eventoDraft',
     renderEventoEditorComputados
   );
+
+  document.getElementById('btn-cloud-status').addEventListener('click', () => {
+    document.getElementById('cloud-erro').hidden = true;
+    document.getElementById('cloud-pin-input').value = cloudPin || '';
+    document.getElementById('btn-cloud-desconectar').hidden = !cloudPin;
+    document.getElementById('modal-cloud-overlay').classList.add('active');
+  });
+  document.getElementById('modal-cloud-close').addEventListener('click', () => {
+    document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
+  document.getElementById('modal-cloud-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-cloud-overlay') document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
+  document.getElementById('btn-cloud-conectar').addEventListener('click', async () => {
+    const pin = document.getElementById('cloud-pin-input').value.trim();
+    const erroEl = document.getElementById('cloud-erro');
+    erroEl.hidden = true;
+    if (!pin) return;
+    try {
+      await conectarNuvem(pin);
+      document.getElementById('modal-cloud-overlay').classList.remove('active');
+    } catch (err) {
+      erroEl.textContent = 'PIN incorreto ou sem conexão. Tente de novo.';
+      erroEl.hidden = false;
+    }
+  });
+  document.getElementById('btn-cloud-desconectar').addEventListener('click', () => {
+    desconectarNuvem();
+    document.getElementById('modal-cloud-overlay').classList.remove('active');
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);

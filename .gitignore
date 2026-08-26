@@ -1,4 +1,22 @@
+# Segredos / dependências
 .env
 .env.*
 node_modules/
 *.local
+
+# Configs de editor / ferramentas de IA (não fazem parte do projeto)
+.vscode/
+.cursor/
+.windsurf/
+.opencode/
+.clinerules/
+.obsidian/
+.foam/
+.impeccable/
+
+# Claude Code — arquivos locais/pessoais (agents/, skills/, rules.md permanecem versionados)
+settings.local.json
+.claude/worktrees/
+
+# Livros/PDFs de referência — binários grandes, não versionar
+LIVROS/

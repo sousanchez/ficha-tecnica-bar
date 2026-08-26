@@ -138,6 +138,35 @@ function deleteInsumo(id) {
   run('DELETE FROM insumos WHERE id = ?', [id]);
   renderInsumos();
 }
+function deleteInsumosSelecionados() {
+  const ids = [...state.insumosSelecionados];
+  if (ids.length === 0) return;
+
+  const bloqueados = [];
+  const liberados = [];
+  for (const id of ids) {
+    const usadoReceita = query('SELECT COUNT(*) as c FROM receita_itens WHERE insumo_id = ?', [id])[0].c;
+    const usadoProducao = query('SELECT COUNT(*) as c FROM producao_itens WHERE ingrediente_id = ?', [id])[0].c;
+    if (usadoReceita > 0 || usadoProducao > 0) bloqueados.push(id);
+    else liberados.push(id);
+  }
+
+  if (liberados.length === 0) {
+    alert(`${bloqueados.length} insumo(s) selecionado(s) estão em uso em fichas técnicas/produções internas e não podem ser excluídos. Remova-os de lá primeiro.`);
+    return;
+  }
+  const avisoBloqueados = bloqueados.length > 0
+    ? `\n\n${bloqueados.length} dos selecionados estão em uso e não serão excluídos.`
+    : '';
+  if (!confirm(`Excluir ${liberados.length} insumo(s) selecionado(s)?${avisoBloqueados}`)) return;
+
+  for (const id of liberados) {
+    run('DELETE FROM producao_itens WHERE producao_id = ?', [id]);
+    run('DELETE FROM insumos WHERE id = ?', [id]);
+    state.insumosSelecionados.delete(id);
+  }
+  renderInsumos();
+}
 
 // ---------- Producoes internas (xaropes, espumas, batches...) ----------
 function addProducaoInterna() {
@@ -237,6 +266,15 @@ function calcIndicadores(custo, precoVenda) {
 function fmtMoeda(v) {
   return (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
+// Custo unitario (por ml/g/unidade) costuma ser fracao de centavo (ex: acucar
+// a R$0,0026/g) - 2 casas fixas mostraria "R$0,00" e pareceria de graca. Mostra
+// ate 4 casas quando precisa, mas nao deixa passar de R$0,01 pra baixo: abaixo
+// disso arredonda pra cima pro minimo de 1 centavo (nunca mostra fracao de centavo).
+function fmtMoedaUnitario(v) {
+  const val = v ?? 0;
+  if (val > 0 && val < 0.01) return fmtMoeda(0.01);
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+}
 function fmtPct(v) {
   return v === null || v === undefined ? '-' : v.toFixed(1) + '%';
 }
@@ -248,6 +286,11 @@ function cmvClass(cmv) {
 }
 
 // ---------- Eventos (pacotes) ----------
+const ESTAGIOS_EVENTO = [
+  { valor: 'confirmado', label: 'Confirmado' },
+  { valor: 'realizado', label: 'Realizado' },
+];
+
 // Custo medio por dose entre os drinks selecionados, escalado por quantas
 // doses cada convidado consome. Funcao pura - recebe os custos ja calculados
 // em vez de buscar do banco, pra dar pra testar sem sql.js/localStorage.
@@ -275,7 +318,7 @@ function addEvento() {
   openEventoEditor(id);
 }
 function updateEventoField(id, field, value) {
-  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa'];
+  const allowed = ['nome', 'data', 'convidados', 'horas', 'doses_por_pessoa', 'preco_pacote_pessoa', 'estagio'];
   setField('eventos', allowed, id, field, value);
 }
 function deleteEvento(id) {
@@ -320,6 +363,29 @@ function calcTotaisEvento(custoPorPessoa, precoPacotePessoa, convidados) {
   return { custoTotal, receitaTotal, lucroTotal: receitaTotal - custoTotal };
 }
 
+// ---------- Dashboard: receita mensal (eventos realizados) ----------
+// Soma preco_pacote_pessoa x convidados por mes (YYYY-MM da data do evento).
+// Funcao pura - recebe a lista de eventos ja filtrada pelo chamador (so
+// 'realizado'), mesmo padrao de calcCustoEventoPessoa/computeMenuEngineering.
+function calcReceitaPorMes(eventos) {
+  const porMes = {};
+  eventos.forEach((e) => {
+    if (!e.data) return; // sem data, nao da pra agrupar por mes
+    const mes = e.data.slice(0, 7); // 'YYYY-MM'
+    const receita = e.preco_pacote_pessoa * e.convidados;
+    porMes[mes] = (porMes[mes] || 0) + receita;
+  });
+  return Object.keys(porMes).sort().map((mes) => ({ mes, receita: porMes[mes] }));
+}
+
+const NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+// 'YYYY-MM' -> 'Mes/AAAA' (pt-BR, sem lib externa - mesma restricao do resto do app)
+function fmtMesAno(mesStr) {
+  const [ano, mes] = mesStr.split('-');
+  return `${NOMES_MES[parseInt(mes, 10) - 1]}/${ano}`;
+}
+
 // ---------- Badge de CMV: status nao pode depender so de cor (daltonismo) ----------
 function cmvIcon(cmv) {
   if (cmv === null) return '';
@@ -332,7 +398,8 @@ function cmvIcon(cmv) {
 // existe e este bloco nao roda - script tag continua funcionando igual.
 if (typeof module !== 'undefined') {
   module.exports = {
-    calcIndicadores, fmtMoeda, fmtPct, cmvClass, calcCustoEventoPessoa,
-    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+    calcIndicadores, fmtMoeda, fmtMoedaUnitario, fmtPct, cmvClass, calcCustoEventoPessoa,
+    calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, ESTAGIOS_EVENTO,
+    calcReceitaPorMes, fmtMesAno,
   };
 }

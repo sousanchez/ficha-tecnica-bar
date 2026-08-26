@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   calcIndicadores, cmvClass, calcCustoEventoPessoa,
-  calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon,
+  calcCustoDraftItens, calcCustoUnitario, calcTotaisEvento, cmvIcon, fmtMoedaUnitario, ESTAGIOS_EVENTO,
+  calcReceitaPorMes, fmtMesAno,
 } = require('./model.js');
 
 test('calcIndicadores: caso normal', () => {
@@ -92,4 +93,65 @@ test('cmvIcon: um simbolo por faixa, alinhado com cmvClass', () => {
   assert.equal(cmvIcon(30), '! ');
   assert.equal(cmvIcon(50), '✕ ');
   assert.equal(cmvIcon(null), '');
+});
+
+test('fmtMoedaUnitario: valor abaixo de 1 centavo arredonda pra cima pro minimo (R$0,01)', () => {
+  assert.equal(fmtMoedaUnitario(0.0026), 'R$ 0,01');
+  assert.equal(fmtMoedaUnitario(0.001), 'R$ 0,01');
+});
+test('fmtMoedaUnitario: zero continua R$0,00 (nao e "custo positivo pequeno")', () => {
+  assert.equal(fmtMoedaUnitario(0), 'R$ 0,00');
+});
+test('fmtMoedaUnitario: valor >= 1 centavo mostra ate 4 casas quando precisa', () => {
+  assert.equal(fmtMoedaUnitario(0.025), 'R$ 0,025');
+  assert.equal(fmtMoedaUnitario(0.1), 'R$ 0,10');
+  assert.equal(fmtMoedaUnitario(1.5), 'R$ 1,50');
+});
+test('ESTAGIOS_EVENTO: 2 estagios na ordem Confirmado/Realizado', () => {
+  assert.deepEqual(
+    ESTAGIOS_EVENTO.map((e) => e.valor),
+    ['confirmado', 'realizado'],
+  );
+  assert.deepEqual(
+    ESTAGIOS_EVENTO.map((e) => e.label),
+    ['Confirmado', 'Realizado'],
+  );
+});
+
+test('calcReceitaPorMes: lista vazia -> []', () => {
+  assert.deepEqual(calcReceitaPorMes([]), []);
+});
+test('calcReceitaPorMes: um evento com data -> uma linha', () => {
+  const eventos = [{ data: '2026-08-10', preco_pacote_pessoa: 50, convidados: 10 }];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 500 }]);
+});
+test('calcReceitaPorMes: dois eventos no mesmo mes -> soma na mesma linha', () => {
+  const eventos = [
+    { data: '2026-08-01', preco_pacote_pessoa: 50, convidados: 10 },
+    { data: '2026-08-20', preco_pacote_pessoa: 30, convidados: 5 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 650 }]);
+});
+test('calcReceitaPorMes: eventos em meses diferentes -> duas linhas ordenadas', () => {
+  const eventos = [
+    { data: '2026-09-01', preco_pacote_pessoa: 20, convidados: 10 },
+    { data: '2026-08-01', preco_pacote_pessoa: 50, convidados: 10 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [
+    { mes: '2026-08', receita: 500 },
+    { mes: '2026-09', receita: 200 },
+  ]);
+});
+test('calcReceitaPorMes: evento sem data -> ignorado', () => {
+  const eventos = [
+    { data: '', preco_pacote_pessoa: 50, convidados: 10 },
+    { data: '2026-08-01', preco_pacote_pessoa: 30, convidados: 5 },
+  ];
+  assert.deepEqual(calcReceitaPorMes(eventos), [{ mes: '2026-08', receita: 150 }]);
+});
+
+test('fmtMesAno: converte YYYY-MM pro nome do mes em pt-BR', () => {
+  assert.equal(fmtMesAno('2026-08'), 'Agosto/2026');
+  assert.equal(fmtMesAno('2026-01'), 'Janeiro/2026');
+  assert.equal(fmtMesAno('2026-12'), 'Dezembro/2026');
 });

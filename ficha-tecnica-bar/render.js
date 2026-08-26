@@ -11,18 +11,25 @@ function refreshAll() {
   renderReceitas();
   renderDashboard();
   renderEventos();
+  renderEventosKanban();
+  renderProducoes();
   if (state.editingReceitaId) renderReceitaEditorCampos();
   if (state.editingProducaoId) renderProducaoEditorCampos();
   if (state.editingEventoId) renderEventoEditorCampos();
 }
 
 function renderTabs() {
-  document.querySelectorAll('.tab-btn').forEach((btn) => {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.tab === state.tab);
   });
   document.querySelectorAll('.tab-panel').forEach((panel) => {
     panel.classList.toggle('active', panel.id === `tab-${state.tab}`);
   });
+  document.querySelectorAll('.eventos-view-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.view === state.eventosView);
+  });
+  document.getElementById('eventos-list').style.display = state.eventosView === 'lista' ? '' : 'none';
+  document.getElementById('eventos-kanban').style.display = state.eventosView === 'kanban' ? '' : 'none';
 }
 
 function categoriaOptionsHtml(valorAtual) {
@@ -37,7 +44,7 @@ function unidadeOptionsHtml(valorAtual) {
 }
 
 function renderInsumos() {
-  const rows = getInsumos();
+  const rows = getInsumos().filter((r) => r.tipo !== 'producao_interna');
   const tbody = document.getElementById('insumos-tbody');
 
   // O rebuild abaixo recria todos os inputs da tabela, entao o elemento focado
@@ -55,22 +62,23 @@ function renderInsumos() {
       }
     : null;
 
+  // Selecao (checkboxes) so faz sentido pros ids ainda visiveis no filtro atual -
+  // sem isso um insumo selecionado e depois escondido pelo filtro fica "preso"
+  // selecionado pra sempre, sem forma de desmarcar.
+  const idsVisiveis = new Set(rows.map((r) => r.id));
+  for (const id of [...state.insumosSelecionados]) {
+    if (!idsVisiveis.has(id)) state.insumosSelecionados.delete(id);
+  }
+
   tbody.innerHTML = rows.map((r) => {
-    const isProducao = r.tipo === 'producao_interna';
-    const tipoBadge = isProducao
-      ? `<span class="badge">Produção</span> <button class="icon-btn" title="Editar producao" onclick="openProducaoEditor(${r.id})">✎</button>`
-      : `<span class="badge good">Comprado</span>`;
-    const precoCell = isProducao
-      ? `<span class="muted" title="Custo calculado a partir dos ingredientes">${fmtMoeda(r.preco_compra)}</span>`
-      : `<input class="num" data-insumo-id="${r.id}" data-field="preco_compra" type="number" step="0.01" value="${r.preco_compra}">`;
     const estoqueBaixo = r.estoque_minimo > 0 && r.estoque_atual < r.estoque_minimo;
     return `
     <tr>
+      <td><input type="checkbox" class="chk-insumo" data-insumo-id="${r.id}" ${state.insumosSelecionados.has(r.id) ? 'checked' : ''}></td>
       <td><input class="input-nome" data-insumo-id="${r.id}" data-field="nome" value="${escapeHtml(r.nome)}"></td>
-      <td>${tipoBadge}</td>
       <td><select data-insumo-id="${r.id}" data-field="categoria">${categoriaOptionsHtml(r.categoria)}</select></td>
       <td><input data-insumo-id="${r.id}" data-field="fornecedor" value="${escapeHtml(r.fornecedor || '')}"></td>
-      <td class="num">${precoCell}</td>
+      <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="preco_compra" type="number" step="0.01" value="${r.preco_compra}"></td>
       <td><select data-insumo-id="${r.id}" data-field="unidade_compra">${unidadeOptionsHtml(r.unidade_compra)}</select></td>
       <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="tamanho_unidade" type="number" step="0.01" value="${r.tamanho_unidade}"></td>
       <td class="num"><input class="num" data-insumo-id="${r.id}" data-field="fator_correcao" type="number" step="0.01" value="${r.fator_correcao}" title="Multiplicador de perda (ex: 1.15 = 15% de perda). 1 = sem perda"></td>
@@ -82,6 +90,16 @@ function renderInsumos() {
   `;
   }).join('');
   document.getElementById('insumos-count').textContent = `${rows.length} insumo(s)`;
+
+  tbody.querySelectorAll('.chk-insumo').forEach((chk) => {
+    chk.addEventListener('change', (e) => {
+      const id = Number(e.target.dataset.insumoId);
+      if (e.target.checked) state.insumosSelecionados.add(id);
+      else state.insumosSelecionados.delete(id);
+      atualizarToolbarSelecaoInsumos(rows.length);
+    });
+  });
+  atualizarToolbarSelecaoInsumos(rows.length);
 
   if (focoAnterior) {
     const seletor = `[data-insumo-id="${focoAnterior.insumoId}"][data-field="${focoAnterior.field}"]`;
@@ -114,6 +132,16 @@ function renderInsumos() {
   });
 }
 
+function atualizarToolbarSelecaoInsumos(totalVisivel) {
+  const n = state.insumosSelecionados.size;
+  const btn = document.getElementById('btn-delete-selecionados');
+  btn.hidden = n === 0;
+  btn.textContent = n > 0 ? `Excluir selecionados (${n})` : 'Excluir selecionados';
+  const chkAll = document.getElementById('chk-insumos-all');
+  chkAll.checked = totalVisivel > 0 && n >= totalVisivel;
+  chkAll.indeterminate = n > 0 && n < totalVisivel;
+}
+
 function renderReceitas() {
   const receitas = getReceitas();
   const list = document.getElementById('receitas-list');
@@ -135,6 +163,16 @@ function renderDashboard() {
       </tr>
     `).join('') || '<tr><td colspan="2" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
   document.getElementById('dashboard-total').textContent = `${receitas.length} ficha(s) tecnica(s)`;
+
+  const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
+  const receitaPorMes = calcReceitaPorMes(eventosRealizados);
+  const tbodyMensal = document.getElementById('dashboard-receita-mensal-tbody');
+  tbodyMensal.innerHTML = receitaPorMes.map((r) => `
+      <tr>
+        <td>${fmtMesAno(r.mes)}</td>
+        <td class="num">${fmtMoeda(r.receita)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="2" class="muted">Nenhum evento realizado ainda.</td></tr>';
 }
 
 function renderEventos() {
@@ -151,6 +189,50 @@ function renderEventos() {
       </div>
     `;
   }).join('') || '<p class="muted">Nenhum evento cadastrado ainda.</p>';
+}
+
+function renderEventosKanban() {
+  const eventos = getEventos();
+  const board = document.getElementById('eventos-kanban');
+  board.innerHTML = ESTAGIOS_EVENTO.map((estagio) => {
+    const doEstagio = eventos.filter((e) => e.estagio === estagio.valor);
+    const cardsHtml = doEstagio.map((e) => {
+      const { cmv } = calcIndicadores(e.custoPorPessoa, e.preco_pacote_pessoa);
+      const optionsHtml = ESTAGIOS_EVENTO.map((opt) =>
+        `<option value="${opt.valor}" ${opt.valor === e.estagio ? 'selected' : ''}>${opt.label}</option>`
+      ).join('');
+      return `
+        <div class="receita-card" onclick="openEventoEditor(${e.id})">
+          <div class="receita-card-title">${escapeHtml(e.nome)}</div>
+          <div class="receita-card-row"><span>Convidados</span><strong>${e.convidados}</strong></div>
+          <div class="receita-card-row"><span>Custo/pessoa</span><strong>${fmtMoeda(e.custoPorPessoa)}</strong></div>
+          <div class="receita-card-row"><span>CMV</span><strong class="badge ${cmvClass(cmv)}">${cmvIcon(cmv)}${fmtPct(cmv)}</strong></div>
+          <select class="kanban-card-estagio" onclick="event.stopPropagation()" onchange="updateEventoField(${e.id}, 'estagio', this.value); refreshAll();">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }).join('') || '<p class="muted">Nenhum evento.</p>';
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-title">${estagio.label} (${doEstagio.length})</div>
+        ${cardsHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderProducoes() {
+  const rows = query("SELECT * FROM insumos WHERE tipo = 'producao_interna' ORDER BY nome");
+  const list = document.getElementById('producoes-list');
+  list.innerHTML = rows.map((r) => `
+    <div class="receita-card" onclick="openProducaoEditor(${r.id})">
+      <div class="receita-card-title">${escapeHtml(r.nome)}</div>
+      <div class="receita-card-row"><span>Custo do lote</span><strong>${fmtMoeda(r.preco_compra)}</strong></div>
+      <div class="receita-card-row"><span>Custo unitário</span><strong>${fmtMoedaUnitario(r.preco_unitario)} / ${r.unidade_compra}</strong></div>
+      <div class="receita-card-row"><span>Categoria</span><strong>${escapeHtml(r.categoria || '-')}</strong></div>
+    </div>
+  `).join('') || '<p class="muted">Nenhuma produção interna cadastrada ainda.</p>';
 }
 
 // Renderiza a tabela de itens (insumo/quantidade/unidade/custo) usada tanto pelo
@@ -233,7 +315,7 @@ function renderProducaoEditorComputados() {
   const custoTotal = calcCustoDraftItens(d.itens);
   const custoUnitario = calcCustoUnitario(custoTotal, d.tamanho_unidade, d.fator_correcao);
   document.getElementById('pr-custo-total').textContent = fmtMoeda(custoTotal);
-  document.getElementById('pr-custo-unitario').textContent = `${fmtMoeda(custoUnitario)} / ${d.unidade_compra}`;
+  document.getElementById('pr-custo-unitario').textContent = `${fmtMoedaUnitario(custoUnitario)} / ${d.unidade_compra}`;
 
   renderItemsTable(
     document.getElementById('pr-itens-tbody'),
