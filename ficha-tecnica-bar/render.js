@@ -206,9 +206,23 @@ function renderDashboard() {
 
   const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
   const receitaPorMes = calcReceitaPorMes(eventosRealizados);
+  const receitaPorMesCronologica = [...receitaPorMes]; // copia antes do sort mutar o array da tabela
   const sortMensal = state.dashboardSortMensal;
   receitaPorMes.sort((a, b) => compararParaSort(a[sortMensal.field], b[sortMensal.field], sortMensal.dir));
   atualizarSetaSort('mensal', sortMensal);
+
+  const chartEl = document.getElementById('dashboard-chart-receita-mensal');
+  const maxReceita = Math.max(...receitaPorMesCronologica.map((r) => r.receita), 0.01); // evita divisao por zero se tudo for 0
+  chartEl.innerHTML = receitaPorMesCronologica.map((r) => {
+    const alturaPct = Math.max((r.receita / maxReceita) * 100, 2); // minimo 2% de altura pra barra de valor zero nao sumir
+    return `
+      <div class="chart-barra-col">
+        <div class="chart-barra-valor">${fmtMoeda(r.receita)}</div>
+        <div class="chart-barra" style="height: ${alturaPct}%"></div>
+        <div class="chart-barra-label">${fmtMesAno(r.mes)}</div>
+      </div>
+    `;
+  }).join('');
 
   const tbodyMensal = document.getElementById('dashboard-receita-mensal-tbody');
   tbodyMensal.innerHTML = receitaPorMes.map((r) => `
