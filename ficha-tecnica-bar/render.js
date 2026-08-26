@@ -175,12 +175,23 @@ function atualizarSetaSort(tabela, sort) {
 
 function renderDashboard() {
   const receitas = getReceitas().map((r) => ({ ...r, cmv: calcIndicadores(r.custo, r.preco_venda).cmv }));
+
+  // Tile "Receitas sem preco" e um toggle-filtro: quando ativo, so as
+  // receitas sem preco_venda aparecem na tabela abaixo. Os outros numeros do
+  // dashboard (custo total, CMV medio, a propria contagem do tile) continuam
+  // batendo com TODAS as receitas - o filtro e so sobre o que a tabela exibe.
+  const receitasTabela = state.dashboardFiltroSemPreco
+    ? receitas.filter((r) => !r.preco_venda || r.preco_venda <= 0)
+    : receitas;
   const sortCusto = state.dashboardSortCusto;
-  receitas.sort((a, b) => compararParaSort(a[sortCusto.field], b[sortCusto.field], sortCusto.dir));
+  receitasTabela.sort((a, b) => compararParaSort(a[sortCusto.field], b[sortCusto.field], sortCusto.dir));
   atualizarSetaSort('custo', sortCusto);
 
   const tbody = document.getElementById('dashboard-tbody');
-  tbody.innerHTML = receitas.map((r) => {
+  const mensagemVazia = state.dashboardFiltroSemPreco
+    ? 'Todas as receitas já têm preço definido.'
+    : 'Nenhuma ficha tecnica cadastrada ainda.';
+  tbody.innerHTML = receitasTabela.map((r) => {
     return `
       <tr class="row-clickable" tabindex="0" role="button"
           onclick="openReceitaEditor(${r.id})"
@@ -190,8 +201,8 @@ function renderDashboard() {
         <td class="num"><span class="badge ${cmvClass(r.cmv)}">${cmvIcon(r.cmv)}${fmtPct(r.cmv)}</span></td>
       </tr>
     `;
-  }).join('') || '<tr><td colspan="3" class="muted">Nenhuma ficha tecnica cadastrada ainda.</td></tr>';
-  document.getElementById('dashboard-total').textContent = `${receitas.length} ficha(s) tecnica(s)`;
+  }).join('') || `<tr><td colspan="3" class="muted">${mensagemVazia}</td></tr>`;
+  document.getElementById('dashboard-total').textContent = `${receitasTabela.length} ficha(s) tecnica(s)`;
 
   const eventosRealizados = getEventos().filter((e) => e.estagio === 'realizado');
   const receitaPorMes = calcReceitaPorMes(eventosRealizados);
@@ -219,9 +230,10 @@ function renderDashboard() {
   document.getElementById('dash-custo-total').textContent = fmtMoeda(receitas.reduce((s, r) => s + r.custo, 0));
   const cmvMedio = calcCmvMedio(receitas);
   const cmvMedioEl = document.getElementById('dash-cmv-medio');
-  cmvMedioEl.textContent = fmtPct(cmvMedio);
+  cmvMedioEl.textContent = cmvIcon(cmvMedio) + fmtPct(cmvMedio);
   cmvMedioEl.className = 'badge ' + cmvClass(cmvMedio);
   document.getElementById('dash-sem-preco').textContent = calcReceitasSemPreco(receitas);
+  document.getElementById('dash-sem-preco-tile').classList.toggle('ativo', state.dashboardFiltroSemPreco);
   document.getElementById('dash-receita-realizada').textContent = fmtMoeda(receitaPorMes.reduce((s, r) => s + r.receita, 0));
 }
 

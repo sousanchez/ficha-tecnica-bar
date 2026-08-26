@@ -7,6 +7,7 @@ let state = {
   eventosView: 'lista',
   dashboardSortCusto: { field: 'nome', dir: 'asc' },
   dashboardSortMensal: { field: 'mes', dir: 'asc' },
+  dashboardFiltroSemPreco: false,
   editingReceitaId: null,
   editingProducaoId: null,
   editingEventoId: null,
@@ -128,6 +129,10 @@ function attachGlobalHandlers() {
       else { sort.field = btn.dataset.field; sort.dir = 'asc'; }
       renderDashboard();
     });
+  });
+  document.getElementById('dash-sem-preco-tile').addEventListener('click', () => {
+    state.dashboardFiltroSemPreco = !state.dashboardFiltroSemPreco;
+    renderDashboard();
   });
   document.getElementById('filtro-nome').addEventListener('input', (e) => {
     state.insumoFiltro = e.target.value;
