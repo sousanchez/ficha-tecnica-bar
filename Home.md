@@ -19,9 +19,14 @@ Painel de entrada do segundo cérebro da Vale Verde Festas / Florest — vault O
 
 Brief do retrofit, cardápio do evento, receita de assinatura e manual de bar do grupo — o núcleo operacional deste vault.
 
+- [[cardapio-autoral]] — MOC do cardápio autoral (3 espaços, curva, carta-postal); porta de entrada do projeto
 - [[vale-verde-retrofit-florest]] — brief do retrofit do espaço Florest, ambientes e configurações de capacidade
 - [[clareira]] — coquetel autoral de assinatura do Florest, ficha técnica completa
 - [[cardapio-evento-florest]] — cardápio consolidado do evento (300 convidados): autorais, clássicos, mocktails, lista de compras
+- [[florest-cartas]] — as 5 cartas do Florest (papel na curva, formato, citação)
+- [[acqua-cartas]] · [[serra-cartas]] — cartas em proposta [SUGESTÃO] dos outros dois espaços
+- [[citacoes-cardapio-autoral]] — citações reais por drink: textos, fontes e nível de confiança
+- [[app-cardapio-vale-verde]] — projeto de código (Vite + React) que renderiza o cardápio
 - [[LIVROS]] — índice da biblioteca de referência completa
 
 ### Referências de coquetelaria (`Referencias/`)
