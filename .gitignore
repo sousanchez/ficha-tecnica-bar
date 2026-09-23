@@ -19,4 +19,6 @@ settings.local.json
 .claude/worktrees/
 
 # Livros/PDFs de referência — binários grandes, não versionar
-LIVROS/
+LIVROS/*
+!LIVROS/resumos/
+!LIVROS/resumos/*.md
