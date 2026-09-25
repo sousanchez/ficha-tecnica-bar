@@ -60,3 +60,73 @@ Definições em [.claude/agents/](.claude/agents/).
 5. **Orquestrador** integra e responde ao usuário.
 
 > Regra de ouro: nenhum trabalho do `vv-doer` chega ao usuário sem passar pelo `vv-reviewer`.
+
+---
+
+## Quando usar cada skill
+
+Guia rápido de decisão para este projeto. Chame qualquer skill com `/nome`.
+
+### 1. Thumbnails (trabalho principal)
+
+| Quando | Skill |
+|--------|-------|
+| Criar, refazer ou melhorar a capa de um vídeo | `/youtube-thumbnail` |
+| Peça web/landing ou UI para revisar e polir | `/impeccable` |
+
+### 2. Coquetelaria e gastronomia
+
+| Quando | O que fazer |
+|--------|-------------|
+| Receita, técnica de bar, pareamento de sabores ou gastronomia molecular | **Primeiro** consultar `LIVROS/resumos/`; só então responder |
+| O resumo não é suficiente | Recorrer ao PDF/EPUB original em `LIVROS/` |
+| Pesquisar algo externo (tendência, produto, insumo novo) | `/deep-research` ou `firecrawl` |
+
+### 3. App Ficha Técnica de Bar (código)
+
+| Momento | Skill |
+|---------|-------|
+| "Vamos construir X" ou qualquer feature nova | `/brainstorming` **antes** de qualquer código |
+| Já existe spec e a tarefa tem vários passos | `/writing-plans`, depois `/executing-plans` |
+| Escrever código de feature ou correção | `/test-driven-development` (test-first) |
+| Bug, teste falhando ou comportamento estranho | `/systematic-debugging` **antes** de propor o fix |
+| Antes de afirmar que está pronto ou que funciona | `/verification-before-completion` |
+| Revisar diff ou branch antes de fazer merge | `/code-review` (ou `/requesting-code-review`) |
+| Limpar/simplificar código sem caçar bug | `/simplify` |
+| Branch pronta, hora de integrar | `/finishing-a-development-branch` |
+| Isolar o trabalho em workspace separado | `/using-git-worktrees` |
+| Retomar as pendências da Fase 2 (peso por vendas, CMV alvo, doses por hora) | `/brainstorming` — a spec pede revisitar antes de construir |
+
+### 4. Dados e saída
+
+| Quando | Skill |
+|--------|-------|
+| Gráfico, dashboard ou chart (ex.: receita mensal) | `dataviz` |
+| Planilha (custeio, fichas técnicas, CSV) | `/xlsx` |
+| Word, PowerPoint ou PDF | `/docx`, `/pptx`, `/pdf` |
+| Documento vivo para compartilhar e editar | `docs` |
+| Página ou app interativo para usar, não só ler | Artifact + `artifact-design` |
+
+### 5. Orquestração vv (todo trabalho de código)
+
+| Passo | Agente |
+|-------|--------|
+| Reconhecer o terreno (onde está X, mapear módulo) | `vv-scanner` |
+| Executar (escrever ou alterar código) | `vv-doer` |
+| Revisar antes de o resultado voltar ao usuário | `vv-reviewer` (**obrigatório**) |
+
+### 6. Config e manutenção
+
+| Quando | Skill |
+|--------|-------|
+| Criar ou afinar uma skill | `/skill-creator` |
+| Automação "sempre que X, faça Y"; permissões; `settings.json` | `/update-config` |
+| Tarefa recorrente ou agendada | `/loop`, `/schedule` |
+| Rodar o app para ver funcionando | `/run` |
+
+### Regra mental curta
+
+- **Feature** → brainstorm → plan → TDD → verify → review
+- **Bug** → `systematic-debugging` primeiro
+- **Bar/receita** → `LIVROS/resumos/` primeiro
+- **Código** → sempre via `vv-doer` → `vv-reviewer`
