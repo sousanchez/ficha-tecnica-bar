@@ -27,6 +27,19 @@ Documentação da biblioteca de referência usada no relançamento do **Florest*
 - [[spritz]] — história e receitas do spritz italiano
 - [[the-geeky-bartender-drinks]] — receitas inspiradas em cultura geek
 - [[the-bartenders-manifesto]] — filosofia e processo criativo de criação de drinks (The Violet Hour)
+- [[liquid-intelligence]] — ciência do gelo, diluição, carbonatação e clarificação (Dave Arnold)
+
+## Gastronomia molecular (Modernist Cuisine)
+
+- [[modernist-cuisine-vol1]] — história, microbiologia, segurança alimentar, física do calor
+- [[modernist-cuisine-vol2-techniques-equipment]] — equipamentos e técnicas
+- [[modernist-cuisine-vol3-animals-plants]] — ciência de carnes, frutos do mar e vegetais
+- [[modernist-cuisine-vol4-ingredientes-preparaciones]] — ingredientes e preparações
+- [[modernist-cuisine-vol5-plated-dish-recipes]] — pratos montados com sub-receitas
+- [[modernist-cuisine-vol6-kitchen-manual]] — manual de referência paramétrica
+- [[modernist-cuisine-at-home]] — adaptação para cozinha doméstica
+- [[modernist-cuisine-thickening-emulsification]] — espessantes e emulsificantes
+- [[modernist-pizza-vol4-kitchen-manual]] — fórmulas de massa, fermentação e forno
 
 ## Drinks sem álcool
 

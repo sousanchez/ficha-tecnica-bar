@@ -42,6 +42,21 @@ Livros técnicos e filosóficos sobre criação, execução e história do coque
 - [[spritz]] — história e receitas do spritz italiano
 - [[the-geeky-bartender-drinks]] — receitas inspiradas em cultura geek
 - [[the-bartenders-manifesto]] — filosofia e processo criativo de criação de drinks (The Violet Hour)
+- [[liquid-intelligence]] — ciência do gelo, diluição, carbonatação e clarificação (Dave Arnold)
+
+### Gastronomia molecular (`Gastronomia-Molecular/`)
+
+A série Modernist Cuisine (Myhrvold/Young/Bilet) e a série irmã Modernist Pizza — ciência do ingrediente, técnica e equipamento, além de fórmulas paramétricas de referência.
+
+- [[modernist-cuisine-vol1]] — história da cozinha modernista, microbiologia, segurança alimentar, física do calor
+- [[modernist-cuisine-vol2-techniques-equipment]] — equipamentos e técnicas (sous vide, combi oven, centrífuga)
+- [[modernist-cuisine-vol3-animals-plants]] — ciência de carnes, frutos do mar e vegetais
+- [[modernist-cuisine-vol4-ingredientes-preparaciones]] — ingredientes e preparações
+- [[modernist-cuisine-vol5-plated-dish-recipes]] — 47 pratos montados com sub-receitas completas
+- [[modernist-cuisine-vol6-kitchen-manual]] — manual de referência rápida/paramétrica
+- [[modernist-cuisine-at-home]] — adaptação para cozinha doméstica
+- [[modernist-cuisine-thickening-emulsification]] — espessantes e emulsificantes
+- [[modernist-pizza-vol4-kitchen-manual]] — fórmulas de massa, fermentação e forno
 
 ### Foodpairing & ciência dos sabores (`Sabores/`)
 

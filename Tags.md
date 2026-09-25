@@ -22,6 +22,8 @@ Dicionário de taxonomia do vault — tags em uso e quando usar cada uma.
 | `receita` | Ficha técnica de um coquetel/drink específico |
 | `indice` | Nota de índice/dashboard (ex.: Home, LIVROS, Tags) |
 | `biblioteca` | Nota que cataloga ou resume a biblioteca de referência |
+| `gastronomia-molecular` | Nota sobre a série Modernist Cuisine/Modernist Pizza — ver `Gastronomia-Molecular/` |
+| `tecnica-culinaria` | Técnica/ciência de cozinha (não específico a coquetéis) |
 
 ## Ver também
 

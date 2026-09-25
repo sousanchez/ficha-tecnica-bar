@@ -19,6 +19,12 @@ Descreva aqui o que funciona para você após analisar seus melhores vídeos.
 ### Regras de template
 - (suas regras de design e marca)
 
+## Biblioteca de referência — coquetelaria e gastronomia
+
+`LIVROS/resumos/` contém resumos completos (lidos na íntegra) de 33 livros de coquetelaria, gastronomia molecular e foodpairing (Death & Co, Meehan's, Cocktail Codex, Liquid Intelligence, série Modernist Cuisine completa, Flavor Matrix, Foodpairing, etc.) — ver `LIVROS/resumos/README.md` para o índice por categoria.
+
+**Sempre que a pergunta envolver receitas, técnica de bar, pareamento de sabores ou gastronomia molecular, consulte primeiro os arquivos relevantes em `LIVROS/resumos/` antes de responder do zero.** Os PDFs/EPUBs originais ficam em `LIVROS/` (fora do git, grandes) caso o resumo não seja suficiente.
+
 ## Ficha Técnica de Bar — Fase 2 (pendências)
 
 Feature de custeio de eventos (aba "Eventos") implementada e mergeada no master — ver `docs/superpowers/specs/2026-08-09-custeio-eventos-design.md` e `docs/superpowers/plans/2026-08-09-custeio-eventos.md`. Ficou de fora de propósito (decisão do brainstorming), não construir sem revisitar a spec:
