@@ -8,7 +8,11 @@ Quer a prova? Clarifica um suco e põe do lado do normal: o clarificado tende a 
 
 Dá pra construir corpo sem empurrar açúcar: uma ponta de goma (xantana, arábica) dá textura sedosa. Mas tem limite — engrossar demais pode deixar o drink "surdo".
 
-Cocktail Science #08 · Seu drink tem corpo — ou só açúcar? 👇
+Nota técnica: o "ponto crítico" é a concentração de sobreposição de cadeias (c*). Abaixo dela o espessante dá corpo sem apagar sabor; acima, a solução passa de líquida a espessa e abafa gosto e aroma.
+
+Teste em casa: clarifique um suco, prove do lado do normal e conte nos comentários o que mudou. 👇
+
+Cocktail Science #08 · Seu drink tem corpo — ou só açúcar?
 
 #CocktailScience #Coquetelaria #Mixologia #Mouthfeel #Textura #Bartender #Bartending #CoquetelariaCientifica #DrinkPerfeito #Reologia #Hidrocoloides #BartenderBrasil #ShakingTheBar #ValeVerde
 
