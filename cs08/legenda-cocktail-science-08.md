@@ -2,11 +2,11 @@
 
 "Esse drink tem corpo." Todo mundo fala. Quase ninguém sabe de onde vem.
 
-Corpo não é só açúcar. A boca sente a textura do drink — viscosidade, peso, gás — antes do sabor. É tato, não paladar.
+Corpo não é só açúcar. A boca sente a textura do drink — viscosidade, peso, gás — tanto quanto o sabor. É tato, não paladar.
 
-Quer a prova? Clarifica um suco e põe do lado do normal: o clarificado fica morto e chapado. Tirou a textura, levou parte do sabor.
+Quer a prova? Clarifica um suco e põe do lado do normal: o clarificado tende a ficar chapado. Tirou a textura, pode levar parte do sabor.
 
-Dá pra construir corpo sem empurrar açúcar: uma ponta de goma (xantana, arábica) dá textura sedosa. Mas tem limite — engrossar demais deixa o drink "surdo".
+Dá pra construir corpo sem empurrar açúcar: uma ponta de goma (xantana, arábica) dá textura sedosa. Mas tem limite — engrossar demais pode deixar o drink "surdo".
 
 Cocktail Science #08 · Seu drink tem corpo — ou só açúcar? 👇
 
